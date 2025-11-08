@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Campus Connect Hub — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+   <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+
+  <style>
+    :root{
+      --primary:#3A0CA3;
+      --accent:#7209B7;
+    }
+    *{box-sizing:border-box}
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, #1a1625 100%);
+      color: #111827;
+      height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: #111827;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.25);
+    }
+    .sidebar h2 { font-size: 1.2rem; color: #4CC9F0; margin-bottom: 14px; text-align: center; }
+    .sidebar button {
+      background: none; border: none; color: white;
+      text-align: left; padding: 10px; font-weight: 500;
+      cursor: pointer; border-radius: 10px;
+      transition: transform 0.12s ease, background 0.12s ease;
+      margin-bottom:6px;
+    }
+    .sidebar button:hover { transform: translateX(6px); }
+    .sidebar button.active {
+      background: linear-gradient(90deg, var(--primary), #000);
+      box-shadow: 0 8px 20px rgba(58,12,163,0.16);
+    }
+    .logout {
+      margin-top: auto;
+      background: linear-gradient(90deg, var(--accent), #000);
+      border: none; color: white; padding: 10px;
+      border-radius: 10px; cursor: pointer; font-weight: 600;
+    }
+
+    .main {
+      flex: 1; padding: 24px; overflow-y: auto;
+      background: #fff; border-top-left-radius: 25px;
+      border-bottom-left-radius: 25px; box-shadow: -5px 0 15px rgba(0,0,0,0.08);
+      position: relative; min-height: 100vh;
+    }
+    h1 { color: var(--primary); margin:0 0 12px 0; }
+    .card {
+      background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.03); position: relative;
+    }
+    .btn {
+      background: linear-gradient(90deg, var(--primary), #000);
+      color: white; border: none; border-radius: 10px;
+      padding: 10px 14px; font-weight: 600; cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn.secondary { background: linear-gradient(90deg,var(--accent),#000); }
+    .btn.warn { background: linear-gradient(90deg,#b91c1c,#000); }
+    .small { color:#6b7280; font-size:0.9rem; }
+    .meta { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .actions { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+
+    /* dropdown */
+    .status-dropdown {
+      position: absolute; background: white;
+      border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 200; min-width: 180px; border: 1px solid #eee;
+      animation: fadeSlide .22s ease;
+    }
+    .status-dropdown button {
+      width: 100%; background: none; border: none;
+      padding: 10px 14px; text-align: left;
+      font-weight: 600; color: #333; cursor: pointer;
+    }
+    .status-dropdown button:hover { background: rgba(58,12,163,0.06); color:var(--primary); }
+
+    @keyframes fadeSlide {
+      from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); }
+    }
+
+    .badge {
+      background:#ef4444; color:white; border-radius:50%;
+      padding:6px 10px; font-size:0.8rem; font-weight:700; display:none;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>⚙️ Admin Panel</h2>
+    <button class="active" onclick="showSection('dashboard', this)">Dashboard</button>
+    <button onclick="showSection('allRequests', this)">All Requests</button>
+    <button onclick="showSection('notifications', this)">Notifications <span id="notifBadgeDashboard" class="badge">0</span></button>
+    <hr style="border:none;height:1px;background:rgba(255,255,255,0.06);margin:10px 0" />
+    <button id="eventsBtn" onclick="showSection('events', this)">🎉 Events Announcements</button>
+    <button id="admissionsBtn" onclick="showSection('admissions', this)">🏫 Admissions Announcements</button>
+    <hr style="border:none;height:1px;background:rgba(255,255,255,0.06);margin:10px 0" />
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="main">
+    <h1 id="sectionTitle">Dashboard</h1>
+    <div id="summaryArea"></div>
+    <div id="contentArea"></div>
+  </div>
+
+  <script>
+    /* --- Static Accounts --- */
+    const ADMINS = [
+      { email: "admin@campusconnect.com", pass: "admin123", role: "Admin", name: "System Administrator" },
+      { email: "adminassitant@campusconnect.com", pass: "assitant1234", role: "Admin Staff", name: "Assistant Admin" }
+    ];
+
+    const user = JSON.parse(localStorage.getItem("cch_current_user") || "null");
+    if(!user){ alert("Please login first."); location.href="login.html"; }
+
+    const found = ADMINS.find(a => a.email === user.email && a.pass === user.password);
+    if(!found){ alert("Unauthorized Access"); location.href="login.html"; }
+
+    const isAssistant = found.role === "Admin Staff";
+    if(isAssistant){
+      document.getElementById("eventsBtn").style.display="none";
+      document.getElementById("admissionsBtn").style.display="none";
+    }
+
+    /* --- Storage --- */
+    const getRequests=()=>JSON.parse(localStorage.getItem("cch_requests")||"[]");
+    const saveRequests=a=>localStorage.setItem("cch_requests",JSON.stringify(a));
+    const getReplies=()=>JSON.parse(localStorage.getItem("cch_replies")||"[]");
+    const saveReplies=a=>localStorage.setItem("cch_replies",JSON.stringify(a));
+
+    /* --- Dashboard Rendering --- */
+    const summaryArea=document.getElementById("summaryArea");
+    const contentArea=document.getElementById("contentArea");
+
+    function showSection(id,btn){
+      document.querySelectorAll(".sidebar button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("sectionTitle").textContent = {
+        dashboard:"Dashboard",allRequests:"All Requests",
+        notifications:"Notifications",events:"Events",
+        admissions:"Admissions"
+      }[id] || id;
+
+      if(id==="dashboard") renderDashboard();
+      else if(id==="allRequests") renderAllRequests();
+      else if(id==="notifications") renderNotifications();
+      else if(id==="events" && !isAssistant) contentArea.innerHTML="<div class='card'><p>Create or view events here.</p></div>";
+      else if(id==="admissions" && !isAssistant) contentArea.innerHTML="<div class='card'><p>Manage admission posts here.</p></div>";
+      else contentArea.innerHTML="<div class='card'><p>Access denied.</p></div>";
+    }
+
+    function renderDashboard(){
+      const all=getRequests();
+      const totals=all.length;
+      const pending=all.filter(r=>r.status==="Pending").length;
+      const progress=all.filter(r=>r.status==="In Progress").length;
+      const resolved=all.filter(r=>["Resolved","Completed"].includes(r.status)).length;
+      summaryArea.innerHTML=`
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px;">
+          <div class="card"><b>${totals}</b><div class="small">Total</div></div>
+          <div class="card"><b>${pending}</b><div class="small">Pending</div></div>
+          <div class="card"><b>${progress}</b><div class="small">In Progress</div></div>
+          <div class="card"><b>${resolved}</b><div class="small">Resolved</div></div>
+        </div>`;
+      renderAllRequests(true);
+    }
+
+    function renderAllRequests(simple=false){
+      const all=getRequests().slice().reverse();
+      if(!all.length){ contentArea.innerHTML="<div class='card'>No Requests Found</div>"; return; }
+      const html=all.map(r=>`
+        <div class="card">
+          <div class="meta"><strong>${r.category||"Request"}</strong> — ${r.submitted_by||"User"}<span class="small">${new Date(r.id).toLocaleString()}</span></div>
+          <div>${r.desc||"-"}</div>
+          <div class="actions">
+            <button class="btn secondary" onclick="reply(${r.id})">Reply</button>
+            <button class="btn secondary" onclick="openStatusDropdown(event,${r.id})">Update Status</button>
+            ${isAssistant ? "" : `<button class="btn warn" onclick="deleteReq(${r.id})">Delete</button>`}
+          </div>
+        </div>
+      `).join('');
+      contentArea.innerHTML=simple?html:`<h3>All Requests</h3>${html}`;
+    }
+
+    function reply(id){
+      const msg=prompt("Enter reply message:");
+      if(!msg)return;
+      const replies=getReplies();
+      replies.push({id:Date.now(),reply_to:id,from:found.name,message:msg,date:new Date().toISOString()});
+      saveReplies(replies);
+      alert("Reply sent!");
+    }
+
+    function deleteReq(id){
+      const all=getRequests().filter(x=>x.id!==id);
+      saveRequests(all);
+      alert("Deleted!");
+      renderAllRequests();
+    }
+
+    /* --- Dropdown --- */
+    function openStatusDropdown(e,id){
+      document.querySelectorAll(".status-dropdown").forEach(d=>d.remove());
+      const card=e.target.closest(".card");
+      const div=document.createElement("div");
+      div.className="status-dropdown";
+      const statuses=["Pending","In Progress","Resolved","Completed","Rejected"];
+      div.innerHTML=statuses.map(s=>`<button>${s}</button>`).join("");
+      card.appendChild(div);
+      div.querySelectorAll("button").forEach(b=>b.onclick=()=>{updateStatus(id,b.textContent);div.remove();});
+      setTimeout(()=>document.addEventListener("click",ev=>{if(!div.contains(ev.target))div.remove();},{once:true}),10);
+    }
+
+    function updateStatus(id,status){
+      const all=getRequests(); const idx=all.findIndex(x=>x.id==id);
+      if(idx==-1)return;
+      all[idx].status=status; saveRequests(all);
+      alert("Status updated: "+status);
+      renderDashboard();
+    }
+
+    /* --- Notifications --- */
+    function renderNotifications(){
+      const replies=getReplies().slice().reverse();
+      if(!replies.length){ contentArea.innerHTML="<div class='card'>No Notifications</div>"; return;}
+      contentArea.innerHTML=replies.map(r=>`<div class='card'><b>${r.from}</b> replied: "${r.message}"<br><span class='small'>${new Date(r.date).toLocaleString()}</span></div>`).join("");
+    }
+
+    function logout(){
+      localStorage.removeItem("cch_current_user");
+      alert("Logged out!");
+      location.href="index.html";
+    }
+
+    showSection("dashboard", document.querySelector(".sidebar button.active"));
+  </script>
+</body>
+</html>

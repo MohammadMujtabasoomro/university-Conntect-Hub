@@ -1,0 +1,663 @@
+<!-- Save as dashboard.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Campus Connect Hub — Admin Dashboard (Final)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+
+  <style>
+    :root{
+      --primary:#3A0CA3;
+      --accent:#7209B7;
+    }
+    *{box-sizing:border-box}
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, #1a1625 100%);
+      color: #111827;
+      height: 100vh;
+      display: flex;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: #111827;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.25);
+    }
+    .sidebar h2 {
+      font-size: 1.2rem;
+      color: #4CC9F0;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .sidebar button {
+      background: none;
+      border: none;
+      color: white;
+      text-align: left;
+      padding: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: transform 0.12s ease, background 0.12s ease;
+      margin-bottom:6px;
+    }
+    .sidebar button:hover { transform: translateX(6px); }
+    .sidebar button.active {
+      background: linear-gradient(90deg, var(--primary), #000000);
+      box-shadow: 0 8px 20px rgba(58,12,163,0.16);
+    }
+    .logout {
+      margin-top: auto;
+      background: linear-gradient(90deg, var(--accent), #000000);
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .main {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: #fff;
+      border-top-left-radius: 25px;
+      border-bottom-left-radius: 25px;
+      box-shadow: -5px 0 15px rgba(0,0,0,0.08);
+      position: relative;
+      min-height: 100vh;
+    }
+
+    h1 { color: var(--primary); margin:0 0 12px 0; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+      border:1px solid rgba(0,0,0,0.03);
+      position: relative;
+    }
+
+    .btn {
+      background: linear-gradient(90deg, var(--primary), #000000);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn.secondary { background: linear-gradient(90deg,var(--accent),#000); }
+    .btn.warn { background: linear-gradient(90deg,#b91c1c,#000); }
+
+    .small { color:#6b7280; font-size:0.9rem; }
+    .list .req { background:#fafafa; padding:12px; border-radius:10px; border:1px solid #eee; margin-bottom:10px; }
+    .meta { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .actions { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+    .preview { max-width:100%; height:180px; object-fit:cover; border-radius:8px; margin-top:8px; border:1px solid #eee; }
+
+    /* Status dropdown */
+    .status-dropdown {
+      position: absolute;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      overflow: hidden;
+      z-index: 200;
+      min-width: 180px;
+      border: 1px solid #eee;
+      animation: fadeSlide .22s ease;
+    }
+    .status-dropdown button {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+    }
+    .status-dropdown button:hover { background: rgba(58,12,163,0.06); color:var(--primary); }
+
+    @keyframes fadeSlide {
+      from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); }
+    }
+
+    /* In-panel toast (bottom right inside main) */
+    .toast {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      background: linear-gradient(90deg,var(--accent),#000);
+      color:white;
+      padding:12px 16px;
+      border-radius:10px;
+      font-weight:600;
+      opacity:0;
+      transform: translateY(8px);
+      transition: all .25s ease;
+      z-index:150;
+    }
+    .toast.show { opacity:1; transform: translateY(0); }
+
+    .badge {
+      background:#ef4444; color:white; border-radius:50%; padding:6px 10px; font-size:0.8rem; font-weight:700;
+      display:none; cursor:pointer;
+    }
+
+    @media (max-width:900px){
+      .sidebar{ display:none; }
+      .main{ border-radius:0; padding:16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar" role="navigation" aria-label="Admin sidebar">
+  <h2>⚙️ Admin Panel</h2>
+
+  <button type="button" onclick="showSection('dashboard', this)" aria-controls="contentArea" class="active">Dashboard</button>
+
+  <button type="button" onclick="showSection('allRequests', this)" aria-controls="contentArea">All Requests</button>
+
+  <button type="button" onclick="showSection('notifications', this)" aria-controls="contentArea">
+    Notifications <span id="notifBadgeDashboard" class="badge" aria-live="polite" aria-atomic="true">0</span>
+  </button>
+
+  <hr>
+
+  <button type="button" onclick="showSection('events', this)" aria-controls="contentArea">🎉 Events Announcements</button>
+  <button type="button" onclick="showSection('admissions', this)" aria-controls="contentArea">🏫 Admissions Announcements</button>
+
+  <hr>
+
+  <button type="button" class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div class="main" role="main">
+  <h1 id="sectionTitle">Dashboard</h1>
+  <div id="summaryArea" aria-live="polite"></div>
+  <div id="contentArea"></div>
+
+  <!-- ✅ Status Update Dropdown -->
+  <div id="statusDropdown" class="status-dropdown">
+    <button data-status="Pending">Pending</button>
+    <button data-status="In Progress">In Progress</button>
+    <button data-status="Resolved">Resolved</button>
+    <button data-status="Completed">Completed</button>
+    <button data-status="Rejected">Rejected</button>
+  </div>
+</div>
+</div>
+
+  <script>
+    /*******************************
+     FINAL combined dashboard logic
+     - accepts two static admins
+     - accepts "Admin Staff" role for the assistant/operator
+     - status update uses dropdown (no typing)
+     - events/admissions stored in localStorage
+     - replies/notifications stored in localStorage
+    *******************************/
+
+    // --- static admins (both full-access) ---
+    const STATIC_ADMINS = [
+      { email: "admin@campusconnect.com", pass: "admin123", name: "System Administrator" },
+      { email: "admin2@campusconnect.com", pass: "admin456", name: "Assistant Admin" }
+    ];
+
+    // --- session check ---
+    const currentUser = JSON.parse(localStorage.getItem('cch_current_user') || 'null');
+
+    function unauthorizedRedirect(){
+      alert("Access Denied — only official Admin accounts (or Admin Staff) can access this panel.");
+      window.location.href = 'login.html';
+    }
+
+    // If currentUser missing => redirect
+    if(!currentUser){
+      unauthorizedRedirect();
+    } else {
+      // we allow two flows:
+      // 1) currentUser.role === "Admin" and email+password matches a static admin
+      // 2) currentUser.role === "Admin Staff" and email+password matches a static admin (assistant logs in via Admin Staff)
+      const allowedRoles = ["Admin","Admin Staff"];
+      const found = STATIC_ADMINS.find(a => a.email === currentUser.email && (currentUser.password ? a.pass === currentUser.password : true));
+      // Note: some older login flows might store no password in cch_current_user; check best-effort: if stored email equals static admin we accept.
+      if(!found || !allowedRoles.includes(currentUser.role)){
+        unauthorizedRedirect();
+      }
+    }
+
+    /* ---------- helpers & storage ---------- */
+    const toastEl = document.getElementById('toast');
+    const contentArea = document.getElementById('contentArea');
+    const summaryArea = document.getElementById('summaryArea');
+    const notifBadgeDashboard = document.getElementById('notifBadgeDashboard');
+
+    function showToast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(()=> toastEl.classList.remove('show'), 2200);
+    }
+
+    const getRequests = ()=> JSON.parse(localStorage.getItem('cch_requests') || '[]');
+    const saveRequests = arr => localStorage.setItem('cch_requests', JSON.stringify(arr));
+    const getReplies = ()=> JSON.parse(localStorage.getItem('cch_replies') || '[]');
+    const saveReplies = arr => localStorage.setItem('cch_replies', JSON.stringify(arr));
+    const getEvents = ()=> JSON.parse(localStorage.getItem('cch_events') || '[]');
+    const saveEvents = arr => localStorage.setItem('cch_events', JSON.stringify(arr));
+    const getAdmissions = ()=> JSON.parse(localStorage.getItem('cch_admissions') || '[]');
+    const saveAdmissions = arr => localStorage.setItem('cch_admissions', JSON.stringify(arr));
+
+    function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[m])); }
+    function formatDatetime(t){ try { return new Date(t).toLocaleString(); } catch(e){ return t; } }
+    function genId(){ return Date.now() + Math.floor(Math.random()*999); }
+    function fileToBase64(file){ return new Promise((res,rej)=>{ if(!file) return res(null); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej('err'); r.readAsDataURL(file); }); }
+
+    /* ---------- navigation ---------- */
+    function setActiveButton(btn){
+      document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('active'));
+      if(btn) btn.classList.add('active');
+    }
+
+    function showSection(id, btn){
+      setActiveButton(btn);
+      document.getElementById('sectionTitle').textContent = {
+        dashboard: 'Dashboard',
+        allRequests: 'All Requests',
+        notifications: 'Notifications',
+        events: 'Events Announcements',
+        admissions: 'Admissions Announcements'
+      }[id] || id;
+      contentArea.innerHTML = '';
+      if(id === 'dashboard') renderDashboard();
+      else if(id === 'allRequests') renderAllRequests();
+      else if(id === 'notifications') renderNotifications();
+      else if(id === 'events') renderEvents();
+      else if(id === 'admissions') renderAdmissions();
+      else contentArea.innerHTML = '<div class="card"><p class="small">Section not found</p></div>';
+    }
+
+    /* ---------- Dashboard ---------- */
+    function renderDashboard(){
+      const all = getRequests();
+      const totals = all.length;
+      const pending = all.filter(r=>r.status==='Pending').length;
+      const inProgress = all.filter(r=>r.status==='In Progress').length;
+      const resolved = all.filter(r=>['Resolved','Completed','Found','Returned to Lost Desk'].includes(r.status)).length;
+
+      summaryArea.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px;">
+          <div class="card"><div style="font-weight:700">${totals}</div><div class="small">Total Requests</div></div>
+          <div class="card"><div style="font-weight:700">${pending}</div><div class="small">Pending</div></div>
+          <div class="card"><div style="font-weight:700">${inProgress}</div><div class="small">In Progress</div></div>
+          <div class="card"><div style="font-weight:700">${resolved}</div><div class="small">Resolved / Completed</div></div>
+        </div>
+      `;
+
+      const recent = all.slice().reverse().slice(0,8);
+      if(!recent.length){
+        contentArea.innerHTML = '<div class="card"><p class="small">No requests yet.</p></div>';
+        updateNotifBadge();
+        return;
+      }
+
+      const html = recent.map(r=>`
+        <div class="req card" data-id="${r.id}">
+          <div class="meta">
+            <div><strong>${escapeHtml(r.category || 'Request')}</strong> — ${escapeHtml(r.submitted_by || '')} (${escapeHtml(r.role || '')})</div>
+            <div class="small">${formatDatetime(r.createdAt || r.id)}</div>
+          </div>
+          <div style="margin-top:8px;">${escapeHtml(r.desc || r.item || '-')}</div>
+          ${r.image ? `<img class="preview" src="${r.image}" alt="img">` : ''}
+          <div class="actions">
+            <button class="btn secondary" onclick="openReply(${r.id})">Reply</button>
+            <button class="btn secondary" onclick="openStatusDropdown(event, ${r.id})">Update Status</button>
+            <button class="btn warn" onclick="deleteRequest(${r.id})">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      contentArea.innerHTML = `<h3>Recent Requests</h3>${html}`;
+      updateNotifBadge();
+    }
+
+    /* ---------- Status dropdown (no typing) ---------- */
+    function openStatusDropdown(event, id){
+      // remove others
+      document.querySelectorAll('.status-dropdown').forEach(d=>d.remove());
+
+      // parent card for proper positioning
+      const card = event.target.closest('.card');
+      const dropdown = document.createElement('div');
+      dropdown.className = 'status-dropdown';
+      const statuses = ['Pending','In Progress','Resolved','Completed','Rejected'];
+      dropdown.innerHTML = statuses.map(s => `<button data-status="${s}">${s}</button>`).join('');
+      // position slightly near button (append to card to position relative)
+      card.appendChild(dropdown);
+
+      // click handlers
+      dropdown.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click', function(e){
+          const newStatus = this.getAttribute('data-status');
+          updateStatus(id, newStatus);
+          dropdown.remove();
+        });
+      });
+
+      // click outside to close
+      setTimeout(()=>{ // allow click handler to attach before adding document listener
+        const outsideClose = (ev)=>{
+          if(!dropdown.contains(ev.target)) {
+            dropdown.remove();
+            document.removeEventListener('click', outsideClose);
+          }
+        };
+        document.addEventListener('click', outsideClose);
+      }, 10);
+    }
+
+    function updateStatus(id, newStatus){
+      const all = getRequests();
+      const idx = all.findIndex(x=>x.id==id);
+      if(idx === -1) { showToast('Request not found'); return; }
+      all[idx].status = newStatus;
+      saveRequests(all);
+      showToast('Status updated: ' + newStatus);
+      renderDashboard();
+    }
+
+    /* ---------- Replies, Delete ---------- */
+    function openReply(id){
+      const msg = prompt('Write reply message:');
+      if(!msg) return;
+      const replies = getReplies();
+      replies.push({ id: genId(), reply_to_id: id, from: currentUser.name || 'Admin', message: msg, date: new Date().toISOString(), readBy: [] });
+      saveReplies(replies);
+      showToast('Reply sent');
+      updateNotifBadge();
+    }
+
+    function deleteRequest(id){
+      if(!confirm('Delete this request permanently?')) return;
+      const arr = getRequests().filter(x=>x.id!==id);
+      saveRequests(arr);
+      showToast('Request deleted');
+      renderDashboard();
+    }
+
+    /* ---------- All Requests ---------- */
+    function renderAllRequests(){
+      const all = getRequests().slice().reverse();
+      if(!all.length){
+        contentArea.innerHTML = '<div class="card"><p class="small">No requests found.</p></div>';
+        return;
+      }
+      const html = all.map(r=>`
+        <div class="req card">
+          <strong>${escapeHtml(r.category)}</strong> — ${escapeHtml(r.submitted_by)} (${escapeHtml(r.role)})
+          <div class="small">${escapeHtml(r.desc || r.item || "-")}</div>
+          <div class="small">Status: <strong>${escapeHtml(r.status || 'Pending')}</strong></div>
+          <div class="actions">
+            <button class="btn secondary" onclick="openReply(${r.id})">Reply</button>
+            <button class="btn secondary" onclick="openStatusDropdown(event, ${r.id})">Update Status</button>
+            <button class="btn warn" onclick="deleteRequest(${r.id})">Delete</button>
+          </div>
+        </div>
+      `).join('');
+      contentArea.innerHTML = `<h3>All Requests</h3><div class="list">${html}</div>`;
+    }
+
+    /* ---------- Notifications ---------- */
+    function renderNotifications(){
+      const replies = getReplies().slice().reverse();
+      if(!replies.length){
+        contentArea.innerHTML = '<div class="card"><p class="small">No notifications.</p></div>';
+        updateNotifBadge();
+        return;
+      }
+      const html = replies.map(r=>`
+        <div class="card">
+          <b>${escapeHtml(r.from)}</b> replied: "${escapeHtml(r.message)}"
+          <div class="small">${formatDatetime(r.date)}</div>
+        </div>
+      `).join('');
+      contentArea.innerHTML = `<h3>🔔 Notifications</h3>${html}`;
+      // mark all read by admin
+      const updated = replies.map(rep => { rep.readBy = rep.readBy || []; if(!rep.readBy.includes('Admin')) rep.readBy.push('Admin'); return rep; });
+      saveReplies(updated);
+      updateNotifBadge();
+    }
+
+    function updateNotifBadge(){
+      const unread = getReplies().filter(r => !(r.readBy || []).includes('Admin'));
+      if(unread.length) { notifBadgeDashboard.style.display = 'inline-block'; notifBadgeDashboard.textContent = unread.length; }
+      else notifBadgeDashboard.style.display = 'none';
+    }
+
+    /* ---------- Events & Admissions ---------- */
+    async function renderEvents(){
+      const events = getEvents().slice().reverse();
+      let html = `
+        <div class="card">
+          <h3>Create Event Announcement</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="evTitle" placeholder="Event Title" type="text" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ddd">
+            <input id="evStart" type="date" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+            <input id="evEnd" type="date" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+          </div>
+          <div style="margin-top:8px;">
+            <input id="evImage" type="file" accept="image/*">
+          </div>
+          <div style="margin-top:8px;"><textarea id="evDesc" rows="4" placeholder="Short description" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd"></textarea></div>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn" onclick="createEvent()">Create Event</button>
+            <button class="btn secondary" onclick="renderEvents()">Reset</button>
+          </div>
+        </div>
+      `;
+
+      html += `<div class="card"><h3>Existing Events</h3>`;
+      if(!events.length) html += `<p class="small">No events yet.</p>`;
+      else html += events.map(ev => `
+        <div class="card">
+          ${ev.image ? `<img class="preview" src="${ev.image}" alt="ev">` : ''}
+          <div style="margin-top:8px"><strong>${escapeHtml(ev.title)}</strong>
+            <div class="small">Start: ${formatDatetime(ev.start)} • Last: ${formatDatetime(ev.end)}</div>
+            <div style="margin-top:6px">${escapeHtml(ev.desc)}</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn secondary" onclick="editEvent('${ev.id}')">Edit</button>
+            <button class="btn warn" onclick="deleteEvent('${ev.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+      html += `</div>`;
+
+      contentArea.innerHTML = html;
+    }
+
+    async function createEvent(){
+      const title = document.getElementById('evTitle').value.trim();
+      const start = document.getElementById('evStart').value;
+      const end = document.getElementById('evEnd').value;
+      const desc = document.getElementById('evDesc').value.trim();
+      const file = document.getElementById('evImage').files[0];
+
+      if(!title || !start || !end) { showToast('Please fill title, start and last date'); return; }
+      const imageBase = file ? await fileToBase64(file) : null;
+      const ev = { id: genId().toString(), title, start: new Date(start).toISOString(), end: new Date(end).toISOString(), image: imageBase, desc, createdAt: new Date().toISOString() };
+      const arr = getEvents(); arr.push(ev); saveEvents(arr);
+      showToast('Event created');
+      renderEvents();
+    }
+
+    function deleteEvent(id){
+      const arr = getEvents().filter(x=>x.id !== id); saveEvents(arr);
+      showToast('Event deleted'); renderEvents();
+    }
+
+    function editEvent(id){
+      const arr = getEvents();
+      const ev = arr.find(x=>x.id===id);
+      if(!ev){ showToast('Event not found'); return; }
+      contentArea.innerHTML = `
+        <div class="card">
+          <h3>Edit Event</h3>
+          <input id="evTitle_e" value="${escapeHtml(ev.title)}" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd">
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input id="evStart_e" type="date" value="${(new Date(ev.start)).toISOString().slice(0,10)}" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+            <input id="evEnd_e" type="date" value="${(new Date(ev.end)).toISOString().slice(0,10)}" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+          </div>
+          <div style="margin-top:8px;"><input id="evImage_e" type="file" accept="image/*"></div>
+          <div style="margin-top:8px;"><textarea id="evDesc_e" rows="4" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd">${escapeHtml(ev.desc)}</textarea></div>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn" onclick="saveEventEdit('${ev.id}')">Save</button>
+            <button class="btn secondary" onclick="renderEvents()">Cancel</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function saveEventEdit(id){
+      const title = document.getElementById('evTitle_e').value.trim();
+      const start = document.getElementById('evStart_e').value;
+      const end = document.getElementById('evEnd_e').value;
+      const file = document.getElementById('evImage_e').files[0];
+      const desc = document.getElementById('evDesc_e').value.trim();
+      if(!title || !start || !end) { showToast('Please fill title & dates'); return; }
+      const arr = getEvents(); const idx = arr.findIndex(x=>x.id===id); if(idx===-1) return showToast('Not found');
+      const imageBase = file ? await fileToBase64(file) : arr[idx].image || null;
+      arr[idx] = { ...arr[idx], title, start: new Date(start).toISOString(), end: new Date(end).toISOString(), image: imageBase, desc, updatedAt: new Date().toISOString() };
+      saveEvents(arr); showToast('Event updated'); renderEvents();
+    }
+
+    /* ---------- Admissions (similar) ---------- */
+    async function renderAdmissions(){
+      const ads = getAdmissions().slice().reverse();
+      let html = `
+        <div class="card">
+          <h3>Create Admission Announcement</h3>
+          <input id="adTitle" placeholder="Admission Title" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd">
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input id="adStart" type="date" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+            <input id="adEnd" type="date" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+          </div>
+          <div style="margin-top:8px;"><input id="adImage" type="file" accept="image/*"></div>
+          <div style="margin-top:8px;"><textarea id="adDesc" rows="4" placeholder="Description / Requirements" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd"></textarea></div>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn" onclick="createAdmission()">Create Announcement</button>
+            <button class="btn secondary" onclick="renderAdmissions()">Reset</button>
+          </div>
+        </div>
+      `;
+
+      html += `<div class="card"><h3>Existing Admissions</h3>`;
+      if(!ads.length) html += `<p class="small">No admission announcements yet.</p>`;
+      else html += ads.map(ad => `
+        <div class="card">
+          ${ad.image ? `<img class="preview" src="${ad.image}" alt="ad">` : ''}
+          <div style="margin-top:8px"><strong>${escapeHtml(ad.title)}</strong>
+            <div class="small">Open: ${formatDatetime(ad.start)} • Last: ${formatDatetime(ad.end)}</div>
+            <div style="margin-top:6px">${escapeHtml(ad.desc)}</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn secondary" onclick="editAdmission('${ad.id}')">Edit</button>
+            <button class="btn warn" onclick="deleteAdmission('${ad.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+      html += `</div>`;
+
+      contentArea.innerHTML = html;
+    }
+
+    async function createAdmission(){
+      const title = document.getElementById('adTitle').value.trim();
+      const start = document.getElementById('adStart').value;
+      const end = document.getElementById('adEnd').value;
+      const file = document.getElementById('adImage').files[0];
+      const desc = document.getElementById('adDesc').value.trim();
+      if(!title || !start || !end) { showToast('Please fill title, start and last date'); return; }
+      const imageBase = file ? await fileToBase64(file) : null;
+      const ad = { id: genId().toString(), title, start: new Date(start).toISOString(), end: new Date(end).toISOString(), image: imageBase, desc, createdAt: new Date().toISOString() };
+      const arr = getAdmissions(); arr.push(ad); saveAdmissions(arr);
+      showToast('Admission created'); renderAdmissions();
+    }
+
+    function deleteAdmission(id){
+      const arr = getAdmissions().filter(x=>x.id !== id); saveAdmissions(arr);
+      showToast('Admission deleted'); renderAdmissions();
+    }
+
+    function editAdmission(id){
+      const arr = getAdmissions(), ad = arr.find(x=>x.id===id);
+      if(!ad) return showToast('Announcement not found');
+      contentArea.innerHTML = `
+        <div class="card">
+          <h3>Edit Admission</h3>
+          <input id="adTitle_e" value="${escapeHtml(ad.title)}" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd">
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input id="adStart_e" type="date" value="${(new Date(ad.start)).toISOString().slice(0,10)}" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+            <input id="adEnd_e" type="date" value="${(new Date(ad.end)).toISOString().slice(0,10)}" style="padding:10px;border-radius:8px;border:1px solid #ddd">
+          </div>
+          <div style="margin-top:8px;"><input id="adImage_e" type="file" accept="image/*"></div>
+          <div style="margin-top:8px;"><textarea id="adDesc_e" rows="4" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd">${escapeHtml(ad.desc)}</textarea></div>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn" onclick="saveAdmissionEdit('${ad.id}')">Save</button>
+            <button class="btn secondary" onclick="renderAdmissions()">Cancel</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function saveAdmissionEdit(id){
+      const title = document.getElementById('adTitle_e').value.trim();
+      const start = document.getElementById('adStart_e').value;
+      const end = document.getElementById('adEnd_e').value;
+      const file = document.getElementById('adImage_e').files[0];
+      const desc = document.getElementById('adDesc_e').value.trim();
+      if(!title || !start || !end) { showToast('Please fill title & dates'); return; }
+      const arr = getAdmissions(); const idx = arr.findIndex(x=>x.id===id);
+      if(idx===-1) return showToast('Not found');
+      const imageBase = file ? await fileToBase64(file) : arr[idx].image || null;
+      arr[idx] = { ...arr[idx], title, start:new Date(start).toISOString(), end:new Date(end).toISOString(), image: imageBase, desc, updatedAt: new Date().toISOString() };
+      saveAdmissions(arr); showToast('Admission updated'); renderAdmissions();
+    }
+
+    /* ---------- Notifications badge upkeep & logout ---------- */
+    function updateAllBadges(){
+      updateNotifBadge();
+    }
+
+    function logout(){
+      localStorage.removeItem('cch_current_user');
+      showToast('Logged out');
+      setTimeout(()=> window.location.href = 'index.html', 800);
+    }
+
+    /* ---------- initial render ---------- */
+    showSection('dashboard', document.querySelector('.sidebar button.active'));
+    setInterval(updateAllBadges, 2500);
+
+  </script>
+</body>
+</html>

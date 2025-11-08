@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Connect Hub — General Public Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+
+  <style>
+    :root { --primary:#3A0CA3; --accent:#7209B7; --glow:rgba(58,12,163,0.18); }
+    body{margin:0;font-family:'Poppins',sans-serif;background:linear-gradient(180deg,#ffffff 0%,#1a1625 100%);color:#111827;height:100vh;display:flex;}
+    .sidebar{width:240px;background:#111827;color:white;display:flex;flex-direction:column;padding:20px;box-shadow:4px 0 15px rgba(0,0,0,0.25);}
+    .sidebar h2{font-size:1.4rem;color:#4CC9F0;margin-bottom:20px;text-align:center;}
+    .sidebar button{background:none;border:none;color:white;text-align:left;padding:10px;font-weight:500;cursor:pointer;border-radius:10px;transition:background 0.3s ease,transform 0.12s ease;}
+    .sidebar button:hover{transform:translateX(6px);}
+    .sidebar button.active{background:linear-gradient(90deg,var(--primary),#000);box-shadow:0 8px 20px var(--glow);}
+    .logout{margin-top:auto;background:linear-gradient(90deg,var(--accent),#000);border:none;color:white;padding:10px;border-radius:10px;cursor:pointer;font-weight:600;}
+    .main{flex:1;padding:25px;overflow-y:auto;background:#fff;border-top-left-radius:25px;border-bottom-left-radius:25px;box-shadow:-5px 0 15px rgba(0,0,0,0.1);min-height:100vh;}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;}
+    h1{color:var(--primary);margin:0;}
+    .user-info{color:#6b7280;font-weight:600;}
+    form{display:flex;flex-direction:column;gap:12px;max-width:720px;}
+    input,textarea,select{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.1);outline:none;}
+    input:focus,textarea:focus,select:focus{border-color:var(--primary);box-shadow:0 0 8px rgba(114,9,183,0.14);}
+    textarea{resize:vertical;min-height:80px;}
+    .btn{background:linear-gradient(90deg,var(--primary),#000);color:#fff;border:none;border-radius:10px;padding:12px;font-weight:600;cursor:pointer;transition:transform 0.15s ease;}
+    .btn:hover{transform:translateY(-3px);}
+    .card{background:linear-gradient(180deg,#fff,#fbfbff);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(114,9,183,0.08);box-shadow:0 8px 20px rgba(58,12,163,0.04);}
+    .lost-list{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}
+    .lost-item{border-radius:12px;padding:12px;background:white;border:1px solid #e6e6ee;box-shadow:0 6px 18px rgba(0,0,0,0.04);}
+    .lost-item img.preview{max-width:100%;height:140px;object-fit:cover;border-radius:8px;margin-top:8px;border:1px solid #eee;}
+    .notif-card{border-radius:12px;padding:14px;margin-bottom:12px;background:linear-gradient(180deg,#fff,#fbfbff);border:1px solid rgba(114,9,183,0.12);box-shadow:0 6px 18px rgba(58,12,163,0.06);}
+    #notifBadge{background:#ff0033;color:white;font-weight:700;padding:1px 6px;border-radius:8px;font-size:0.8rem;margin-left:6px;display:none;box-shadow:0 0 8px rgba(255,0,0,0.6);animation:pulseGlow 1.5s infinite;}
+    @keyframes pulseGlow{0%{box-shadow:0 0 8px rgba(255,0,0,0.6);}50%{box-shadow:0 0 18px rgba(255,0,0,0.9);}100%{box-shadow:0 0 8px rgba(255,0,0,0.6);}}
+    .toast{position:fixed;bottom:20px;right:20px;background:linear-gradient(90deg,var(--accent),#000);color:white;padding:12px 18px;border-radius:10px;font-weight:600;opacity:0;transform:translateY(10px);transition:all 0.3s ease;z-index:9999;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .stars{display:flex;gap:5px;}
+    .star{font-size:22px;cursor:pointer;color:#ccc;}
+    .star.active{color:#f59e0b;}
+    @media(max-width:900px){.sidebar{display:none;}.main{border-radius:0;padding:18px;}}
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>🌐 Public Panel</h2>
+    <button class="active" onclick="showSection('inquiry', this)">General Inquiry</button>
+    <button onclick="showSection('feedback', this)">Feedback</button>
+    <button onclick="showSection('lostFound', this)">Lost Item Report</button>
+    <button onclick="showSection('emergency', this)">Emergency Help</button>
+    <button onclick="showSection('status', this)">Request Status</button>
+    <button onclick="showSection('notifications', this)">Notifications <span id="notifBadge">0</span></button>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="sectionTitle">General Inquiry</h1>
+        <div class="small">Submit inquiries or feedback — stay updated on replies.</div>
+      </div>
+      <div class="user-info" id="userInfo">Loading...</div>
+    </div>
+    <div id="sectionContent"></div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const user=JSON.parse(localStorage.getItem('cch_current_user')||'null');
+    const sectionTitle=document.getElementById('sectionTitle');
+    const sectionContent=document.getElementById('sectionContent');
+    const toast=document.getElementById('toast');
+    const notifBadge=document.getElementById('notifBadge');
+    const userInfo=document.getElementById('userInfo');
+    if(!user||user.role!=="General Public"){alert("Unauthorized Access! Please login as General Public.");window.location.href="login.html";}
+    else userInfo.textContent=`${user.name} • ${user.role}`;
+
+    function showToast(m){toast.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500);}
+    const getRequests=()=>JSON.parse(localStorage.getItem('cch_requests')||'[]');
+    const saveRequests=a=>localStorage.setItem('cch_requests',JSON.stringify(a));
+    const getReplies=()=>JSON.parse(localStorage.getItem('cch_replies')||'[]');
+    const saveReplies=a=>localStorage.setItem('cch_replies',JSON.stringify(a));
+    const genId=()=>Date.now()+Math.floor(Math.random()*999);
+    const escapeHtml=u=>String(u||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    const formatDatetime=i=>new Date(i).toLocaleString();
+    function fileToBase64(f){return new Promise(res=>{if(!f)return res(null);const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(f);});}
+
+    function showSection(id,btn){
+      document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('active'));
+      if(btn)btn.classList.add('active');
+      sectionTitle.textContent={
+        inquiry:'General Inquiry',feedback:'Feedback',lostFound:'Lost Item Report',emergency:'Emergency Help',
+        notifications:'Notifications',status:'Request Status'
+      }[id];
+      if(id==='inquiry')renderInquiry();
+      else if(id==='feedback')renderFeedback();
+      else if(id==='lostFound')renderLostForm();
+      else if(id==='emergency')renderEmergencyForm();
+      else if(id==='notifications'){markRead();renderNotifications();}
+      else if(id==='status')renderStatus();
+    }
+
+    function renderInquiry(){
+      sectionContent.innerHTML=`<div class="card"><h3>General Inquiry</h3>
+      <form id="inqForm">
+        <input id="inqTitle" placeholder="Subject">
+        <select id="inqTo"><option value="">Send To</option><option>Teacher</option><option>Admin</option><option>Department Staff</option></select>
+        <textarea id="inqDesc" placeholder="Message"></textarea>
+        <input type="file" id="inqImg" accept="image/*">
+        <button class="btn" type="button" onclick="submitInquiry()">Submit</button>
+      </form></div>`;
+    }
+
+    async function submitInquiry(){
+      const t=inqTitle.value.trim(),to=inqTo.value,desc=inqDesc.value.trim();
+      if(!t||!to||!desc)return showToast('Fill all required fields');
+      const img=inqImg.files[0]?await fileToBase64(inqImg.files[0]):null;
+      const all=getRequests();
+      all.push({id:genId(),category:'Inquiry',submitted_by:user.name,role:user.role,title:t,to:to,desc:desc,image:img,status:'Pending',createdAt:new Date().toISOString()});
+      saveRequests(all);showToast('Inquiry submitted');
+      document.getElementById('inqForm').reset();
+    }
+
+    function renderFeedback(){
+      sectionContent.innerHTML=`<div class="card"><h3>Feedback</h3>
+      <form id="feedForm">
+        <div class="stars" id="starRating">${[1,2,3,4,5].map(i=>`<span class="star" data-rate="${i}">★</span>`).join('')}</div>
+        <textarea id="feedMsg" placeholder="Write your feedback"></textarea>
+        <button class="btn" type="button" onclick="submitFeedback()">Submit</button>
+      </form></div>`;
+      document.querySelectorAll('.star').forEach(s=>s.onclick=()=>selectStars(s.dataset.rate));
+    }
+
+    let currentStars=0;
+    function selectStars(n){currentStars=Number(n);document.querySelectorAll('.star').forEach(s=>s.classList.toggle('active',s.dataset.rate<=n));}
+
+    function submitFeedback(){
+      if(!feedMsg.value.trim()||currentStars===0)return showToast('Provide rating and feedback');
+      const all=getRequests();
+      all.push({id:genId(),category:'Feedback',submitted_by:user.name,role:user.role,desc:feedMsg.value,stars:currentStars,status:'Received',createdAt:new Date().toISOString()});
+      saveRequests(all);showToast('Feedback submitted');
+      document.getElementById('feedForm').reset();currentStars=0;
+      document.querySelectorAll('.star').forEach(s=>s.classList.remove('active'));
+    }
+
+    function renderLostForm(){
+      sectionContent.innerHTML=`<div class="card"><h3>Lost Item Report</h3><form><input id="lostItem" placeholder="Item"><input id="lostPlace" placeholder="Where Lost?"><textarea id="lostDesc" placeholder="Description"></textarea><button class="btn" type="button" onclick="submitLost()">Submit</button></form></div>`;
+    }
+    function submitLost(){
+      const all=getRequests();
+      all.push({id:genId(),category:'Lost & Found',submitted_by:user.name,role:user.role,item:lostItem.value,place:lostPlace.value,desc:lostDesc.value,status:'Pending',createdAt:new Date().toISOString()});
+      saveRequests(all);showToast('Lost item report submitted');
+    }
+
+    function renderEmergencyForm(){
+      sectionContent.innerHTML=`<div class="card"><h3>Emergency Help</h3><form><select id="emerType"><option>Medical</option><option>Fire</option><option>Security</option><option>Other</option></select><input id="emerLoc" placeholder="Location"><textarea id="emerDesc" placeholder="Description"></textarea><button class="btn" type="button" onclick="submitEmergency()">Send</button></form></div>`;
+    }
+    function submitEmergency(){
+      const all=getRequests();
+      all.push({id:genId(),category:'Emergency',submitted_by:user.name,role:user.role,type:emerType.value,location:emerLoc.value,desc:emerDesc.value,status:'Active',createdAt:new Date().toISOString()});
+      saveRequests(all);showToast('Emergency reported');
+    }
+
+    function renderStatus(){
+      const all=getRequests().filter(r=>r.submitted_by===user.name).reverse();
+      if(!all.length)return sectionContent.innerHTML='<div class="card"><p>No requests found.</p></div>';
+      sectionContent.innerHTML=`<div><h3>Your Requests</h3>${all.map(r=>`
+        <div class="lost-item card"><b>${escapeHtml(r.category)}</b> — ${escapeHtml(r.title||r.item||'No Title')}<br>
+        <div class="small">${escapeHtml(r.desc||'')}</div>
+        <div>Status: <strong style="color:${r.status==='Pending'?'#f59e0b':r.status==='Active'?'#3b82f6':'#10b981'}">${r.status}</strong></div>
+        <div class="small">${formatDatetime(r.createdAt)}</div></div>`).join('')}</div>`;
+    }
+
+    function renderNotifications(){
+      const replies=getReplies(),reqs=getRequests();
+      const mine=reqs.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+      const rel=replies.filter(r=>mine.includes(r.reply_to_id)).reverse();
+      if(!rel.length)return sectionContent.innerHTML='<div class="card"><p>No notifications yet</p></div>';
+      sectionContent.innerHTML=rel.map(r=>`<div class="notif-card"><b>${escapeHtml(r.from)}</b> replied: ${escapeHtml(r.message)}<div class="small">${formatDatetime(r.date)}</div></div>`).join('');
+    }
+
+    function updateNotifBadge(){
+      const replies=getReplies(),reqs=getRequests();
+      const mine=reqs.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+      const unread=replies.filter(r=>mine.includes(r.reply_to_id)&&!(r.readBy||[]).includes(user.name));
+      notifBadge.style.display=unread.length?'inline-block':'none';
+      notifBadge.textContent=unread.length;
+    }
+    function markRead(){
+      const replies=getReplies(),reqs=getRequests();
+      const mine=reqs.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+      const upd=replies.map(r=>{
+        if(mine.includes(r.reply_to_id)){
+          const read=r.readBy||[];if(!read.includes(user.name))read.push(user.name);return{...r,readBy:read};
+        }return r;
+      });
+      saveReplies(upd);updateNotifBadge();
+    }
+
+    setInterval(updateNotifBadge,3000);
+    updateNotifBadge();
+    function logout(){localStorage.removeItem('cch_current_user');showToast('Logged out');setTimeout(()=>window.location.href='index.html',900);}
+    showSection('inquiry',document.querySelector('.sidebar button'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Connect Hub — Student Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+
+   <style>
+    :root{
+      --primary:#3A0CA3;
+      --accent:#7209B7;
+      --glow: rgba(58,12,163,0.18);
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, #1a1625 100%);
+      color: #111827;
+      height: 100vh;
+      display: flex;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #111827;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.25);
+    }
+    .sidebar h2 {
+      font-size: 1.4rem;
+      color: #4CC9F0;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .sidebar button {
+      background: none;
+      border: none;
+      color: white;
+      text-align: left;
+      padding: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.2s ease, transform 0.12s;
+    }
+    .sidebar button:hover { transform: translateX(6px); }
+    .sidebar button.active {
+      background: linear-gradient(90deg, var(--primary), #000000);
+      box-shadow: 0 8px 20px var(--glow);
+    }
+    .logout {
+      margin-top: auto;
+      background: linear-gradient(90deg, var(--accent), #000000);
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /* Main area */
+    .main {
+      flex: 1;
+      padding: 25px;
+      overflow-y: auto;
+      background: #fff;
+      border-top-left-radius: 25px;
+      border-bottom-left-radius: 25px;
+      box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+      min-height: 100vh;
+    }
+    .topbar {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+    }
+    h1 { color: var(--primary); margin:0; }
+    .user-info { color:#6b7280; font-weight:600; }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+      max-width: 720px;
+    }
+    input, select, textarea {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.1);
+      outline: none;
+      font-family: 'Poppins';
+      font-size: 0.98rem;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 8px rgba(114, 9, 183, 0.14);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn {
+      background: linear-gradient(90deg, var(--primary), #000000);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-3px); }
+
+    .card {
+      background: linear-gradient(180deg,#ffffff,#fbfbff);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(114,9,183,0.08);
+      box-shadow: 0 8px 20px rgba(58,12,163,0.04);
+    }
+
+    .lost-list { margin-top: 12px; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+
+    .lost-item {
+      border-radius:12px;
+      padding:12px;
+      background:white;
+      border:1px solid #e6e6ee;
+      box-shadow:0 6px 18px rgba(0,0,0,0.04);
+    }
+
+    .lost-item img.preview {
+      max-width:100%;
+      height:140px;
+      object-fit:cover;
+      border-radius:8px;
+      margin-top:8px;
+      border:1px solid #eee;
+    }
+
+    .reply-form {
+      margin-top:10px;
+      padding:10px;
+      border-radius:10px;
+      background: linear-gradient(180deg,#f9f7ff,#ffffff);
+      border:1px solid rgba(114,9,183,0.06);
+    }
+
+    .notif-card {
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #fff, #fbfbff);
+      border: 1px solid rgba(114,9,183,0.12);
+      box-shadow: 0 6px 18px rgba(58,12,163,0.06);
+    }
+    .notif-from { font-weight:700; color:var(--primary); }
+    .notif-msg { margin-top:6px; color:#111827; }
+    .notif-time { margin-top:8px; color:#6b7280; font-size:13px; }
+
+    .small { font-size:0.9rem; color:#6b7280; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(90deg, var(--accent), #000000);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width:900px){
+      .sidebar{ display:none; }
+      .main{ border-radius:0; padding:18px; }
+    }
+
+    /* 🔔 Glowing pulse for unread notifications */
+    #notifBadge {
+      background: #ff0033;
+      color: white;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      margin-left: 6px;
+      display: none;
+      box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+      animation: pulseGlow 1.5s infinite;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 8px rgba(255,0,0,0.6); transform: scale(1); }
+      50% { box-shadow: 0 0 18px rgba(255,0,0,0.9); transform: scale(1.1); }
+      100% { box-shadow: 0 0 8px rgba(255,0,0,0.6); transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>🎓 Student Panel</h2>
+    <button class="active" onclick="showSection('lostFound', this)">Lost & Found</button>
+    <button onclick="showSection('complaint', this)">Complaints</button>
+    <button onclick="showSection('suggestion', this)">Suggestions</button>
+    <button onclick="showSection('maintenance', this)">Maintenance Request</button>
+    <button onclick="showSection('bookNotes', this)">Book/Notes Exchange</button>
+    <button onclick="showSection('emergency', this)">Emergency Help</button>
+    <button onclick="showSection('courier', this)">Courier Request</button>
+    <button onclick="showSection('status', this)">View My Status</button>
+
+    <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:12px 0">
+
+    <button class="btn" style="margin-bottom:8px;" onclick="showSection('allRequests', this)">Show All Requests</button>
+    <button class="btn" style="margin-bottom:8px;" onclick="showSection('replyList', this)">Reply to Lost Item</button>
+    <button class="btn" onclick="showSection('notifications', this)">
+      View Notifications <span id="notifBadge">0</span>
+    </button>
+
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="sectionTitle">Lost & Found</h1>
+        <div class="small">Use the menu to navigate.</div>
+      </div>
+      <div class="user-info" id="userInfo">Loading...</div>
+    </div>
+
+    <div id="sectionContent"></div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+  /***********************
+   Initialization & helpers
+  ***********************/
+  const sectionContent = document.getElementById('sectionContent');
+  const sectionTitle = document.getElementById('sectionTitle');
+  const userInfo = document.getElementById('userInfo');
+  const toast = document.getElementById('toast');
+
+  // get current user
+  const user = JSON.parse(localStorage.getItem('cch_current_user') || 'null');
+
+  if(!user || user.role !== "Student"){
+    alert("Unauthorized access — please login as Student.");
+    window.location.href = "login.html";
+  } else {
+    userInfo.textContent = `${user.name} • ${user.role}`;
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 2200);
+  }
+
+  function saveRequests(arr){
+    localStorage.setItem('cch_requests', JSON.stringify(arr));
+  }
+  function getRequests(){
+    try { return JSON.parse(localStorage.getItem('cch_requests') || '[]'); }
+    catch(e){ return []; }
+  }
+  function saveReplies(arr){
+    localStorage.setItem('cch_replies', JSON.stringify(arr));
+  }
+  function getReplies(){
+    try { return JSON.parse(localStorage.getItem('cch_replies') || '[]'); }
+    catch(e){ return []; }
+  }
+
+  // Unique id helper (timestamp + random)
+  function genId(){ return Date.now() + Math.floor(Math.random()*9999); }
+
+  // Convert file input to base64 (returns Promise)
+  function fileToBase64(file){
+    return new Promise((resolve, reject)=>{
+      if(!file) return resolve(null);
+      const reader = new FileReader();
+      reader.onload = ()=>resolve(reader.result);
+      reader.onerror = () => reject('file-read-error');
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // format date-time consistently
+  function formatDatetime(iso){
+    try{
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric', hour:'numeric', minute:'2-digit'});
+    }catch(e){ return iso; }
+  }
+
+  /***********************
+   Sections (templates + renderers)
+  ***********************/
+  function setActiveButton(btn){
+    document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+  }
+
+  function showSection(id, btn=null){
+    setActiveButton(btn);
+    sectionTitle.textContent = {
+      lostFound: 'Lost & Found',
+      complaint: 'Complaint Box',
+      suggestion: 'Suggestion Box',
+      maintenance: 'Maintenance Request',
+      bookNotes: 'Book / Notes Exchange',
+      emergency: 'Emergency Help',
+      courier: 'Courier Request',
+      status: 'View My Status',
+      allRequests: 'All Requests',
+      replyList: 'Lost Items (Reply)',
+      notifications: 'Notifications'
+    }[id] || id;
+    // route
+    if(id === 'lostFound') renderLostForm();
+    else if(id === 'complaint') renderComplaintForm();
+    else if(id === 'suggestion') renderSuggestionForm();
+    else if(id === 'maintenance') renderMaintenanceForm();
+    else if(id === 'bookNotes') renderBookForm();
+    else if(id === 'emergency') renderEmergencyForm();
+    else if(id === 'courier') renderCourierForm();
+    else if(id === 'status') renderStatus();
+    else if(id === 'allRequests') renderAllRequests();
+    else if(id === 'replyList') renderLostListForReply();
+    else if(id === 'notifications') renderNotifications();
+    else sectionContent.innerHTML = '<p>Section not found.</p>';
+  }
+
+  /***************
+   Lost & Found
+  ***************/
+  function renderLostForm(){
+    sectionContent.innerHTML = `
+      <div class="card">
+        <h3>Report Lost Item</h3>
+        <form id="lostForm">
+          <input type="text" id="studentName" placeholder="Student Name" value="${escapeHtml(user.name)}" required>
+          <input type="text" id="studentRoll" placeholder="Roll Number" required>
+          <input type="text" id="lostItem" placeholder="What is Missing?" required>
+          <input type="text" id="lostSign" placeholder="Sign of Identity (optional)">
+          <input type="file" id="lostPic" accept="image/*">
+          <textarea id="lostDesc" placeholder="Description (where/when/how)"></textarea>
+          <select id="lostPlace">
+            <option value="">Where Lost?</option>
+            <option>Classroom</option>
+            <option>Lab</option>
+            <option>Cafeteria</option>
+            <option>Playground</option>
+            <option>Library</option>
+            <option>Other</option>
+          </select>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button type="button" class="btn" onclick="submitLost()">Submit</button>
+            <button type="button" class="btn" style="background:linear-gradient(90deg,var(--accent),#000)" onclick="showSection('allRequests')">View All</button>
+          </div>
+        </form>
+      </div>
+
+      <div style="margin-top:14px;">
+        <h3>Recent Lost Items</h3>
+        <div id="recentLost" class="lost-list"></div>
+      </div>
+    `;
+    renderRecentLost();
+  }
+
+  async function submitLost(){
+    const f = document.getElementById('studentName');
+    const r = document.getElementById('studentRoll');
+    const item = document.getElementById('lostItem');
+    const sign = document.getElementById('lostSign');
+    const pic = document.getElementById('lostPic');
+    const desc = document.getElementById('lostDesc');
+    const place = document.getElementById('lostPlace');
+
+    if(!f.value.trim()||!r.value.trim()||!item.value.trim()){
+      return showToast('Please fill required fields (name, roll, item).');
+    }
+
+    const imageBase = pic.files && pic.files[0] ? await fileToBase64(pic.files[0]) : null;
+
+    const req = {
+      id: genId(),
+      studentName: f.value.trim(),
+      roll: r.value.trim(),
+      item: item.value.trim(),
+      identity: sign.value.trim(),
+      image: imageBase,
+      desc: desc.value.trim(),
+      place: place.value || '',
+      category: 'Lost & Found',
+      submitted_by: user.name,
+      role: user.role,
+      status: 'Pending',
+      createdAt: new Date().toISOString()
+    };
+
+    const all = getRequests();
+    all.push(req);
+    saveRequests(all);
+    showToast('Lost item reported ✅');
+    document.getElementById('lostForm').reset();
+    renderRecentLost();
+  }
+
+  function renderRecentLost(){
+    const all = getRequests().filter(r=>r.category==='Lost & Found').slice(-8).reverse();
+    const container = document.getElementById('recentLost');
+    if(!container) return;
+    if(all.length===0){ container.innerHTML = '<p class="small">No lost items reported yet.</p>'; return; }
+
+    container.innerHTML = all.map(r=>{
+      return `
+        <div class="lost-item card">
+          <div><strong>${escapeHtml(r.item)}</strong></div>
+          <div class="small">by ${escapeHtml(r.submitted_by)} • ${r.place || 'Location not specified'}</div>
+          ${r.image ? `<img class="preview" src="${r.image}" alt="item">` : ''}
+          <div style="margin-top:8px;">${escapeHtml(r.desc || r.identity || '')}</div>
+          <div class="small" style="margin-top:8px;">Reported: ${formatDatetime(r.createdAt)}</div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button class="btn" style="background:linear-gradient(90deg,var(--accent),#000)" onclick="viewRequestDetails(${r.id})">Details</button>
+          </div>
+          <div id="reply-slot-${r.id}"></div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /******************
+   Show All Requests
+  ******************/
+  function renderAllRequests(){
+    const all = getRequests().slice().reverse();
+    if(all.length===0){
+      sectionContent.innerHTML = `<div class="card"><p class="small">No requests in system yet.</p></div>`;
+      return;
+    }
+
+    sectionContent.innerHTML = `<div><h3>All Active Requests</h3><div class="lost-list">${all.map(r=>renderRequestCardHtml(r)).join('')}</div></div>`;
+  }
+
+  function renderRequestCardHtml(r){
+    return `
+      <div class="lost-item card">
+        <div><strong>${escapeHtml(r.category)}${r.item ? ' — ' + escapeHtml(r.item) : ''}</strong></div>
+        <div class="small">From: ${escapeHtml(r.submitted_by)} • ${r.place || r.location || ''}</div>
+        ${r.image ? `<img class="preview" src="${r.image}" alt="img">` : ''}
+        <div style="margin-top:8px;">${escapeHtml(r.desc || '')}</div>
+        <div class="small">Status: <strong style="color:${r.status==='Pending'?'#f59e0b':'#10b981'}">${r.status}</strong></div>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn" onclick="viewRequestDetails(${r.id})">Details</button>
+        </div>
+        <div id="reply-slot-${r.id}"></div>
+      </div>
+    `;
+  }
+
+  function viewRequestDetails(id){
+    const all = getRequests();
+    const r = all.find(x=>x.id===id);
+    if(!r) return showToast('Request not found');
+    sectionContent.innerHTML = `<div class="card">
+      <h3>Request Details</h3>
+      <div><strong>Category:</strong> ${escapeHtml(r.category)}</div>
+      <div><strong>From:</strong> ${escapeHtml(r.submitted_by)}</div>
+      <div><strong>Item / Title:</strong> ${escapeHtml(r.item || r.title || '-')}</div>
+      <div style="margin-top:8px;">${escapeHtml(r.desc || '-')}</div>
+      ${r.image ? `<img class="preview" src="${r.image}" alt="img">` : ''}
+      <div class="small" style="margin-top:8px;">Reported: ${formatDatetime(r.createdAt)}</div>
+      <div style="margin-top:12px;"><button class="btn" onclick="showSection('allRequests')">Back to All</button></div>
+    </div>`;
+  }
+
+  /************************
+   Reply form (in replyList only)
+   ************************/
+  function renderLostListForReply(){
+    const all = getRequests().filter(r=>r.category === 'Lost & Found' && r.status !== 'Found' && r.status !== 'Returned to Lost Desk').reverse();
+    if(all.length===0){
+      sectionContent.innerHTML = `<div class="card"><p class="small">No lost items to reply to.</p></div>`;
+      return;
+    }
+    const html = all.map(r=>{
+      return `
+        <div class="lost-item card">
+          <div><strong>${escapeHtml(r.item)}</strong></div>
+          <div class="small">Reported by ${escapeHtml(r.submitted_by)} • ${r.place || 'Location not specified'}</div>
+          ${r.image ? `<img class="preview" src="${r.image}" alt="item">` : ''}
+          <div style="margin-top:8px;">${escapeHtml(r.desc || '')}</div>
+          <div class="small">Reported: ${formatDatetime(r.createdAt)}</div>
+
+          <div style="margin-top:10px;">
+            <div class="reply-form">
+              <h4 style="margin:0 0 8px 0;">Found Item Report (for this lost item)</h4>
+              <div class="small" style="margin-bottom:8px;">You are submitting as: <strong>${escapeHtml(user.name)}</strong></div>
+              <input type="text" id="foundName-${r.id}" placeholder="Finder Name" value="${escapeHtml(user.name)}">
+              <input type="text" id="foundLocation-${r.id}" placeholder="Found Location (e.g., Library / Lab 2)">
+              <input type="file" id="foundImage-${r.id}" accept="image/*">
+              <textarea id="foundMsg-${r.id}" placeholder="Short message (optional)"></textarea>
+              <label style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                <input type="checkbox" id="returned-${r.id}"> <span class="small">Return to Lost Desk (mark as returned)</span>
+              </label>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button class="btn" onclick="submitFoundFromList(${r.id})">Confirm Found & Notify</button>
+                <button class="btn" style="background:#efefef;color:#111" onclick="showSection('replyList')">Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    sectionContent.innerHTML = `<div><h3>Reply / Found Reports</h3><div class="lost-list">${html}</div></div>`;
+  }
+
+  async function submitFoundFromList(id){
+    const nameEl = document.getElementById(`foundName-${id}`);
+    const locEl = document.getElementById(`foundLocation-${id}`);
+    const imgEl = document.getElementById(`foundImage-${id}`);
+    const msgEl = document.getElementById(`foundMsg-${id}`);
+    const returnedEl = document.getElementById(`returned-${id}`);
+
+    if(!locEl || !nameEl) return showToast('Form not available.');
+    if(!locEl.value.trim()) return showToast('Please enter where you found the item.');
+
+    const imageBase = imgEl.files && imgEl.files[0] ? await fileToBase64(imgEl.files[0]) : null;
+
+    const reply = {
+      id: genId(),
+      reply_to_id: id,
+      from: nameEl.value.trim() || user.name,
+      message: msgEl.value.trim() || `Found and reported at ${locEl.value.trim()}`,
+      foundLocation: locEl.value.trim(),
+      image: imageBase,
+      returnedToLostDesk: !!returnedEl.checked,
+      date: new Date().toISOString(),
+      readBy: [] // initialize readBy
+    };
+
+    // save reply
+    const replies = getReplies();
+    replies.push(reply);
+    saveReplies(replies);
+    updateNotifBadge(); // reflect new unread
+
+    // update original request
+    const all = getRequests();
+    const updated = all.map(r => r.id === id ? {...r, status: returnedEl.checked ? 'Returned to Lost Desk' : 'Found', foundAt: reply.date } : r);
+    saveRequests(updated);
+
+    showToast('Found report submitted — original request updated.');
+    // refresh
+    renderLostListForReply();
+    if(sectionTitle.textContent.toLowerCase().includes('all')) renderAllRequests();
+    if(sectionTitle.textContent.toLowerCase().includes('status')) renderStatus();
+  }
+
+  /****************
+   Notifications
+  ****************/
+  function renderNotifications(){
+    const replies = getReplies();
+    const all = getRequests();
+    const myReqs = all.filter(r => r.submitted_by === user.name);
+    const myIDs = myReqs.map(r=>r.id);
+
+    const myReplies = replies.filter(rep => myIDs.includes(rep.reply_to_id)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(myReplies.length === 0){
+      sectionContent.innerHTML = `<div class="card"><p class="small">No new notifications 📭</p></div>`;
+      return;
+    }
+
+    const cardsHtml = myReplies.map(r=>{
+      const req = all.find(x=>x.id===r.reply_to_id) || {};
+      return `
+        <div class="notif-card">
+          <div class="notif-from">${escapeHtml(r.from)} replied about <strong>${escapeHtml(req.item || req.category || 'Request')}</strong></div>
+          <div class="notif-msg">${escapeHtml(r.message)}</div>
+          ${r.image ? `<img class="preview" src="${r.image}" alt="found-image">` : ''}
+          <div class="small" style="margin-top:8px;">Found location: ${escapeHtml(r.foundLocation || '—')}</div>
+          <div class="small" style="margin-top:6px;">Returned to Lost Desk: ${r.returnedToLostDesk ? 'Yes' : 'No'}</div>
+          <div class="notif-time">${formatDatetime(r.date)}</div>
+        </div>
+      `;
+    }).join("");
+
+    sectionContent.innerHTML = `<div><h3>🔔 Your Notifications</h3>${cardsHtml}</div>`;
+  }
+
+  // mark replies as read for this user
+  function markRepliesAsRead(){
+    const replies = getReplies();
+    const all = getRequests();
+    const myIDs = all.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+
+    const updated = replies.map(r=>{
+      if(myIDs.includes(r.reply_to_id)){
+        let readList = r.readBy || [];
+        if(!readList.includes(user.name)) readList.push(user.name);
+        return {...r, readBy: readList};
+      }
+      return r;
+    });
+
+    saveReplies(updated);
+    updateNotifBadge();
+  }
+
+  // override renderNotifications to mark read first
+  (function(){
+    const oldRenderNotifications = renderNotifications;
+    window.renderNotifications = function(){
+      markRepliesAsRead();
+      oldRenderNotifications();
+    };
+  })();
+
+  /***************
+   Status (my submissions)
+  ***************/
+  function renderStatus(){
+    const all = getRequests();
+    const mine = all.filter(r => r.submitted_by === user.name).sort((a,b)=>b.id-a.id);
+    if(mine.length === 0){
+      sectionContent.innerHTML = `<div class="card"><p class="small">You have no submissions yet.</p></div>`;
+      return;
+    }
+    const html = mine.map(m=>`
+      <div class="card">
+        <div><strong>${escapeHtml(m.category)}${m.item ? ' — ' + escapeHtml(m.item) : ''}</strong></div>
+        <div class="small">Status: <strong style="color:${m.status==='Pending'?'#f59e0b':'#10b981'}">${m.status}</strong></div>
+        ${m.image ? `<img class="preview" src="${m.image}" alt="img">` : ''}
+        <div style="margin-top:8px;">${escapeHtml(m.desc || '')}</div>
+        <div class="small" style="margin-top:6px;">Submitted: ${formatDatetime(m.createdAt)}</div>
+        ${m.foundAt ? `<div class="small">Marked: ${formatDatetime(m.foundAt)}</div>` : ''}
+      </div>
+    `).join('');
+    sectionContent.innerHTML = `<div><h3>My Submissions</h3>${html}</div>`;
+  }
+
+  /****************
+   Other forms (simplified)
+  ****************/
+  function renderComplaintForm(){
+    sectionContent.innerHTML = `
+      <div class="card">
+        <h3>Submit Complaint</h3>
+        <form id="compForm">
+          <input type="text" id="compName" placeholder="Student Name" value="${escapeHtml(user.name)}">
+          <input type="text" id="compRoll" placeholder="Roll Number">
+          <select id="compCategory"><option>Wi-Fi</option><option>Electricity</option><option>Cleanliness</option><option>Other</option></select>
+          <input type="text" id="compLocation" placeholder="Location (Block/Lab/Room)">
+          <textarea id="compDesc" placeholder="Describe your complaint"></textarea>
+          <button class="btn" type="button" onclick="submitComplaint()">Submit</button>
+        </form>
+      </div>
+    `;
+  }
+  function submitComplaint(){
+    const comp = {
+      id: genId(),
+      category: 'Complaint',
+      submitted_by: user.name,
+      role: user.role,
+      desc: document.getElementById('compDesc').value || '',
+      createdAt: new Date().toISOString(),
+      status: 'Pending'
+    };
+    const all = getRequests(); all.push(comp); saveRequests(all);
+    showToast('Complaint submitted');
+    showSection('status');
+  }
+
+  function renderSuggestionForm(){
+    sectionContent.innerHTML = `
+      <div class="card">
+        <h3>Suggestion</h3>
+        <form id="sugForm">
+          <input id="sugTitle" placeholder="Title">
+          <textarea id="sugDesc" placeholder="Suggestion"></textarea>
+          <select id="sugCategory"><option>Canteen</option><option>Library</option><option>System</option><option>Other</option></select>
+          <button class="btn" type="button" onclick="submitSuggestion()">Submit</button>
+        </form>
+      </div>
+    `;
+  }
+  function submitSuggestion(){
+    const s = { id: genId(), category: 'Suggestion', title: document.getElementById('sugTitle').value, desc: document.getElementById('sugDesc').value, submitted_by: user.name, role: user.role, createdAt:new Date().toISOString(), status:'Pending' };
+    const all = getRequests(); all.push(s); saveRequests(all);
+    showToast('Suggestion submitted');
+    showSection('status');
+  }
+
+  function renderMaintenanceForm(){
+    sectionContent.innerHTML = `
+      <div class="card">
+        <h3>Maintenance Request</h3>
+        <form id="maintForm2">
+          <select id="maintType"><option>Furniture</option><option>Electric</option><option>Equipment</option></select>
+          <input id="maintLocation" placeholder="Location">
+          <textarea id="maintDesc2" placeholder="Describe issue"></textarea>
+          <button class="btn" type="button" onclick="submitMaintenance()">Submit</button>
+        </form>
+      </div>
+    `;
+  }
+  function submitMaintenance(){
+    const m = { id: genId(), category:'Maintenance', type: document.getElementById('maintType').value, location: document.getElementById('maintLocation').value, desc: document.getElementById('maintDesc2').value, submitted_by:user.name, role:user.role, createdAt:new Date().toISOString(), status:'Pending' };
+    const all = getRequests(); all.push(m); saveRequests(all);
+    showToast('Maintenance request submitted');
+    showSection('status');
+  }
+
+  function renderBookForm(){
+    sectionContent.innerHTML = `
+      <div class="card">
+        <h3>Book / Notes Exchange</h3>
+        <form id="bookForm2">
+          <select id="bookType2"><option>Offering</option><option>Requesting</option></select>
+          <input id="bookTitle2" placeholder="Book / Subject">
+          <input id="bookDept2" placeholder="Department / Semester">
+          <textarea id="bookDesc2" placeholder="Description"></textarea>
+          <input id="bookContact2" placeholder="Contact Email">
+          <button class="btn" type="button" onclick="submitBook2()">Submit</button>
+        </form>
+      </div>
+    `;
+  }
+  function submitBook2(){ const b={id:genId(),category:'Book/Notes',type:document.getElementById('bookType2').value,title:document.getElementById('bookTitle2').value,dept:document.getElementById('bookDept2').value,desc:document.getElementById('bookDesc2').value,contact:document.getElementById('bookContact2').value,submitted_by:user.name,role:user.role,createdAt:new Date().toISOString(),status:'Pending'}; const all=getRequests(); all.push(b); saveRequests(all); showToast('Book/Notes request saved'); showSection('status'); }
+
+  function renderEmergencyForm(){
+    sectionContent.innerHTML = `
+      <div class="card">
+        <h3>Emergency Help</h3>
+        <form>
+          <select id="emerType2"><option>Injury</option><option>Faint</option><option>Fire</option><option>Other</option></select>
+          <input id="emerLoc2" placeholder="Location">
+          <textarea id="emerDesc2" placeholder="Description"></textarea>
+          <input id="emerContact2" placeholder="Contact Number">
+          <button class="btn" type="button" onclick="submitEmergency2()">Send Alert</button>
+        </form>
+      </div>
+    `;
+  }
+  function submitEmergency2(){ const e={id:genId(),category:'Emergency',type:document.getElementById('emerType2').value,location:document.getElementById('emerLoc2').value,desc:document.getElementById('emerDesc2').value,contact:document.getElementById('emerContact2').value,submitted_by:user.name,role:user.role,createdAt:new Date().toISOString(),status:'Active'}; const all=getRequests(); all.push(e); saveRequests(all); showToast('Emergency sent'); showSection('status'); }
+
+  function renderCourierForm(){
+    sectionContent.innerHTML = `
+      <div class="card">
+        <h3>Courier Request</h3>
+        <form>
+          <input id="courItem2" placeholder="Item Type (Notes/Form)">
+          <input id="courFrom2" placeholder="From Location">
+          <input id="courTo2" placeholder="To Location">
+          <input id="courRec2" placeholder="Receiver Name/ID">
+          <textarea id="courNote2" placeholder="Notes"></textarea>
+          <button class="btn" type="button" onclick="submitCourier2()">Submit</button>
+        </form>
+      </div>
+    `;
+  }
+  function submitCourier2(){ const c={id:genId(),category:'Courier',item:document.getElementById('courItem2').value,from:document.getElementById('courFrom2').value,to:document.getElementById('courTo2').value,receiver:document.getElementById('courRec2').value,notes:document.getElementById('courNote2').value,submitted_by:user.name,role:user.role,createdAt:new Date().toISOString(),status:'Pending'}; const all=getRequests(); all.push(c); saveRequests(all); showToast('Courier request saved'); showSection('status'); }
+
+  /***********************
+   Utility: escapeHtml
+  ***********************/
+  function escapeHtml(unsafe){
+    if(!unsafe && unsafe!==0) return '';
+    return String(unsafe)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#039;');
+  }
+
+  /***********************
+   Logout
+  ***********************/
+  function logout(){
+    localStorage.removeItem('cch_current_user');
+    showToast('Logging out...');
+    setTimeout(()=>window.location.href='index.html',900);
+  }
+
+  /***********************
+   Initial render
+  ***********************/ 
+  showSection('lostFound', document.querySelector('.sidebar button'));
+
+  /* ===============================
+   🔔 UNREAD NOTIFICATIONS SYSTEM
+   =============================== */
+
+  // Update unread badge count
+  function updateNotifBadge(){
+    const replies = JSON.parse(localStorage.getItem("cch_replies") || "[]");
+    const all = JSON.parse(localStorage.getItem("cch_requests") || "[]");
+    const badge = document.getElementById("notifBadge");
+    if(!badge || !user) return;
+
+    // my lost-item IDs
+    const myIDs = all.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+    // count unread replies belonging to my items
+    const myUnread = replies.filter(r => myIDs.includes(r.reply_to_id) && !(r.readBy||[]).includes(user.name));
+
+    if(myUnread.length > 0){
+      badge.style.display = "inline-block";
+      badge.textContent = myUnread.length;
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  // When user opens Notifications — mark all as read
+  // markRepliesAsRead() defined above
+
+  // also update badge after saving replies
+  (function(){
+    const originalSaveReplies = saveReplies;
+    window.saveReplies = function(arr){
+      originalSaveReplies(arr);
+      updateNotifBadge();
+    };
+  })();
+
+  // Also refresh badge every few seconds (for live update)
+  setInterval(updateNotifBadge, 4000);
+
+  // Initialize badge once
+  updateNotifBadge();
+
+  </script>
+
+</body>
+</html>

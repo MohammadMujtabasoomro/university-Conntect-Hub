@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Campus Connect Hub — Login & Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, #1a1625 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #111827;
+    }
+    .auth-box {
+      width: 90%;
+      max-width: 480px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+      border: 2px solid rgba(58, 12, 163, 0.2);
+    }
+    h1 { color: #3A0CA3; margin-bottom: 6px; text-align: center; }
+    p { color: #6b7280; text-align: center; font-size: 0.95rem; }
+    .tabs { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+    .tab {
+      cursor: pointer; padding: 10px 16px; border-radius: 10px;
+      background: #f3f4f6; color: #6b7280; font-weight: 600; transition: all 0.2s ease;
+    }
+    .tab.active {
+      background: linear-gradient(90deg, #3A0CA3, #000000);
+      color: #fff; box-shadow: 0 8px 20px rgba(58, 12, 163, 0.3);
+    }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    input, select {
+      padding: 12px 14px; border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.08); outline: none;
+      transition: box-shadow 0.2s ease;
+    }
+    input:focus, select:focus {
+      border-color: #3A0CA3; box-shadow: 0 0 10px rgba(114, 9, 183, 0.2);
+    }
+    .btn {
+      background: linear-gradient(90deg, #3A0CA3, #000000);
+      color: white; border: none; border-radius: 10px; padding: 12px;
+      font-weight: 600; cursor: pointer; box-shadow: 0 10px 24px rgba(58, 12, 163, 0.25);
+      transition: transform 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: linear-gradient(90deg, #7209B7, #000000);
+      color: white; padding: 12px 16px; border-radius: 10px;
+      font-weight: 600; opacity: 0; transform: translateY(10px);
+      transition: all 0.3s ease; z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .back {
+      position: absolute; top: 20px; left: 20px;
+      color: #3A0CA3; font-weight: 600; cursor: pointer;
+      text-decoration: underline; transition: color 0.2s ease;
+    }
+    .back:hover { color: #000000; }
+  </style>
+</head>
+<body>
+  <div class="back" id="backBtn">← Back</div>
+
+  <div class="auth-box">
+    <h1>Campus Connect Hub</h1>
+    <p>Login or Create Account to Continue</p>
+
+    <div class="tabs">
+      <div class="tab active" id="tabLogin">Login</div>
+      <div class="tab" id="tabSign">Sign Up</div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="formLogin">
+      <input type="email" id="loginEmail" placeholder="Email" required />
+      <select id="loginRole" required>
+        <option value="">Select Role</option>
+        <option>Student</option>
+        <option>Teacher</option>
+        <option>Admin Staff</option>
+        <option>General Public</option>
+        <option>Department Staff</option>
+        <option>Admin</option>
+      </select>
+      <input type="password" id="loginPassword" placeholder="Password" required />
+      <button type="button" class="btn" id="btnLogin">Login</button>
+    </form>
+
+    <!-- Signup Form -->
+    <form id="formSign" style="display:none;">
+      <input type="text" id="signFirst" placeholder="First Name" required />
+      <input type="text" id="signLast" placeholder="Last Name" required />
+      <input type="email" id="signEmail" placeholder="Email" required />
+      <input type="number" id="signAge" placeholder="Age" required />
+      <select id="signRole" required>
+        <option value="">Select Role</option>
+        <option>Student</option>
+        <option>Teacher</option>
+        <option>Admin Staff</option>
+        <option>General Public</option>
+        <option>Department Staff</option>
+      </select>
+      <input type="password" id="signPass" placeholder="Password" required />
+      <input type="password" id="signPass2" placeholder="Confirm Password" required />
+      <button type="button" class="btn" id="btnSign">Create Account</button>
+    </form>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const loginTab=document.getElementById("tabLogin");
+    const signTab=document.getElementById("tabSign");
+    const formLogin=document.getElementById("formLogin");
+    const formSign=document.getElementById("formSign");
+    const toast=document.getElementById("toast");
+    const backBtn=document.getElementById("backBtn");
+
+    function showToast(msg){
+      toast.textContent=msg;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"),2500);
+    }
+
+    backBtn.onclick=()=>window.location.href="index.html";
+
+    loginTab.onclick=()=>{loginTab.classList.add("active");signTab.classList.remove("active");formLogin.style.display="flex";formSign.style.display="none";};
+    signTab.onclick=()=>{signTab.classList.add("active");loginTab.classList.remove("active");formLogin.style.display="none";formSign.style.display="flex";};
+
+    function getUsers(){try{return JSON.parse(localStorage.getItem('cch_users')||'[]');}catch{return [];}};
+    function saveUsers(u){localStorage.setItem('cch_users',JSON.stringify(u));};
+
+    // Prevent Admin signup
+    document.getElementById("btnSign").onclick=()=>{
+      const f=document.getElementById("signFirst").value.trim();
+      const l=document.getElementById("signLast").value.trim();
+      const e=document.getElementById("signEmail").value.trim().toLowerCase();
+      const a=document.getElementById("signAge").value;
+      const r=document.getElementById("signRole").value;
+      const p=document.getElementById("signPass").value;
+      const p2=document.getElementById("signPass2").value;
+      if(!f||!l||!e||!a||!r||!p||!p2)return showToast("All fields required");
+      if(p!==p2)return showToast("Passwords do not match");
+      if(r==="Admin")return showToast("Admin accounts cannot be created via signup.");
+
+      let users=getUsers();
+      if(users.some(u=>u.email===e))return showToast("Email already registered");
+      users.push({firstName:f,lastName:l,email:e,age:a,role:r,password:p});
+      saveUsers(users);
+      showToast("✅ Account Created! Please Login Now.");
+      setTimeout(()=>loginTab.click(),1500);
+    };
+
+    // LOGIN
+    document.getElementById("btnLogin").onclick=()=>{
+      const e=document.getElementById("loginEmail").value.trim().toLowerCase();
+      const r=document.getElementById("loginRole").value;
+      const p=document.getElementById("loginPassword").value;
+      let users=getUsers();
+
+      // Static Admins (Full Access)
+      const staticAdmins=[
+        {email:"admin@campusconnect.com",password:"admin123",name:"System Administrator"}
+      ];
+
+      // Static Admin Assistant (Limited Access)
+      const adminAssistant={
+        email:"adminassitant@campusconnect.com",
+        password:"assitant1234",
+        name:"Admin Assistant"
+      };
+
+      // --- Admin Full Access ---
+      const matched=staticAdmins.find(a=>a.email===e && a.password===p && r==="Admin");
+      if(matched){
+        const adminUser={email:e,password:p,role:"Admin",name:matched.name};
+        localStorage.setItem('cch_current_user',JSON.stringify(adminUser));
+        showToast("Welcome "+matched.name);
+        return setTimeout(()=>window.location.href="admin.html",1000);
+      }
+
+      // --- Admin Assistant Limited Access ---
+      if(e===adminAssistant.email && p===adminAssistant.password && r==="Admin Staff"){
+        const asUser={email:e,password:p,role:"Admin Staff",name:adminAssistant.name};
+        localStorage.setItem('cch_current_user',JSON.stringify(asUser));
+        showToast("Welcome "+adminAssistant.name);
+        return setTimeout(()=>window.location.href="admin.html",1000);
+      }
+
+      // --- Normal Users ---
+      const user=users.find(u=>u.email===e && u.password===p && u.role===r);
+      if(!user)return showToast("Invalid credentials or wrong role");
+
+      const session={email:user.email,role:user.role,name:user.firstName,password:user.password};
+      localStorage.setItem('cch_current_user',JSON.stringify(session));
+      showToast("Welcome "+user.firstName);
+
+      setTimeout(()=>{
+        if(r==="Student")window.location.href="student.html";
+        else if(r==="Teacher")window.location.href="teacher.html";
+        else if(r==="Admin Staff")window.location.href="admin.html";
+        else if(r==="General Public")window.location.href="public.html";
+        else if(r==="Department Staff")window.location.href="department.html";
+        else showToast("No dashboard found for this role");
+      },1000);
+    };
+  </script>
+</body>
+</html>

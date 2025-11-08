@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>About — Campus Connect Hub</title>
+  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+
+  
+  <!-- ✅ Locked Theme (same as index) -->
+  <style>
+    /* ✅ Poppins Font Integration */
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1xlFQ.woff2) format('woff2');
+    }
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2) format('woff2');
+    }
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFQ.woff2) format('woff2');
+    }
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2) format('woff2');
+    }
+
+    /* 🎨 Theme Locked */
+    :root {
+      --primary:#3A0CA3;
+      --accent:#7209B7;
+      --bg-top:#ffffff;
+      --bg-bottom:#1a1625;
+    }
+
+    body {
+      margin:0;
+      font-family:'Poppins',sans-serif;
+      background:linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+      color:#1a1a1a;
+      padding:40px 20px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      animation:fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity:0; transform:translateY(15px);}
+      to {opacity:1; transform:translateY(0);}
+    }
+
+    .container {
+      max-width:960px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.95),rgba(255,255,255,0.98));
+      border-radius:20px;
+      padding:40px;
+      box-shadow:0 18px 50px rgba(15,15,30,0.12),0 6px 18px rgba(58,12,163,0.06);
+      border:2px solid rgba(58,12,163,0.06);
+    }
+
+    h1 {
+      color:var(--primary);
+      font-size:2.4rem;
+      margin-bottom:10px;
+    }
+
+    h2 {
+      color:var(--accent);
+      font-size:1.6rem;
+      margin-top:32px;
+      margin-bottom:8px;
+    }
+
+    p {
+      color:#555;
+      line-height:1.7;
+      margin:10px 0;
+      font-size:1.05rem;
+    }
+
+    ul {
+      list-style:none;
+      padding:0;
+      margin:10px 0 0;
+    }
+
+    ul li {
+      background:rgba(114,9,183,0.05);
+      margin:6px 0;
+      padding:10px 16px;
+      border-radius:8px;
+      color:#333;
+      font-size:1rem;
+      box-shadow:0 2px 6px rgba(0,0,0,0.05);
+      transition:transform 0.25s ease;
+    }
+
+    ul li:hover {
+      transform:scale(1.02);
+      background:rgba(114,9,183,0.08);
+    }
+
+    .highlight {
+      color:var(--primary);
+      font-weight:600;
+    }
+
+    a.btn {
+      display:inline-block;
+      margin-top:34px;
+      background:linear-gradient(90deg,var(--primary),#000000);
+      color:#fff;
+      padding:12px 28px;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:600;
+      transition:all 0.25s ease;
+    }
+
+    a.btn:hover {
+      transform:translateY(-2px);
+      box-shadow:0 18px 40px rgba(58,12,163,0.3);
+    }
+
+    footer {
+      margin-top:40px;
+      color:#777;
+      font-size:0.9rem;
+    }
+
+    @media(max-width:600px){
+      .container{padding:24px;}
+      h1{font-size:2rem;}
+      h2{font-size:1.4rem;}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>About Campus Connect Hub</h1>
+    <p>
+      <span class="highlight">Campus Connect Hub</span> is a digital university portal designed to unite
+      <strong>students</strong>, <strong>teachers</strong>, <strong>staff</strong>, and <strong>visitors</strong> under one platform.
+      It simplifies communication, streamlines requests, and ensures fast and transparent campus services.
+    </p>
+
+    <h2>Our Mission</h2>
+    <p>
+      To create a <strong>smarter, connected campus</strong> that bridges the gap between technology and education.
+      We aim to improve <em>efficiency</em>, <em>accessibility</em>, and <em>collaboration</em> across all departments.
+    </p>
+
+    <h2>Our Vision</h2>
+    <p>
+      We envision a digital ecosystem where every campus operates efficiently through innovation, automation, and engagement —
+      making education management easier and more meaningful.
+    </p>
+
+    <h2>Professional Functionalities</h2>
+    <ul>
+      <li>Role-based Login for Students, Teachers, Staff & Visitors</li>
+      <li>Smart Complaint & Request Management System</li>
+      <li>Real-time Notifications and Service Updates</li>
+      <li>Secure Data Handling and Privacy Protection</li>
+      <li>Responsive and Mobile-friendly Interface</li>
+      <li>SEO-optimized and Scalable Structure</li>
+    </ul>
+
+    <h2>Contact Us</h2>
+    <p>
+      <strong>Email:</strong> support@campusconnecthub.com<br>
+      <strong>Phone:</strong> +92 300 1234567<br>
+      <strong>Landline:</strong> (042) 1234-5678<br>
+       <strong>Address:</strong> IT Department, Your University, jacobabad, Pakistan
+    </p>
+
+    <a href="index.html" class="btn">← Back to Home</a>
+  </div>
+
+  <footer>© 2025 Campus Connect Hub. All rights reserved.</footer>
+</body>
+</html>

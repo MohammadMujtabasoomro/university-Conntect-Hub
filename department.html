@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Campus Connect Hub — Department Staff Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+
+<style>
+:root{--primary:#3A0CA3;--accent:#7209B7;--glow:rgba(58,12,163,0.15);}
+body{margin:0;font-family:'Poppins',sans-serif;background:linear-gradient(180deg,#ffffff 0%,#1a1625 100%);color:#111827;display:flex;min-height:100vh;}
+.sidebar{width:250px;background:#111827;color:white;display:flex;flex-direction:column;padding:22px;box-shadow:4px 0 15px rgba(0,0,0,0.25);}
+.sidebar h2{font-size:1.4rem;color:#4CC9F0;margin-bottom:20px;text-align:center;}
+.sidebar button{background:none;border:none;color:white;text-align:left;padding:10px;border-radius:10px;font-weight:500;cursor:pointer;transition:background 0.2s ease,transform 0.15s;}
+.sidebar button:hover{transform:translateX(6px);}
+.sidebar button.active{background:linear-gradient(90deg,var(--primary),#000);box-shadow:0 6px 18px var(--glow);}
+.logout{margin-top:auto;background:linear-gradient(90deg,var(--accent),#000);border:none;color:white;padding:10px;border-radius:10px;cursor:pointer;font-weight:600;}
+.main{flex:1;padding:25px;background:#fff;border-top-left-radius:25px;border-bottom-left-radius:25px;box-shadow:-6px 0 15px rgba(0,0,0,0.1);overflow-y:auto;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+h1{color:var(--primary);margin:0;}
+.user-info{color:#6b7280;font-weight:600;}
+form{display:flex;flex-direction:column;gap:12px;max-width:720px;}
+input,textarea,select{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.1);outline:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--primary);box-shadow:0 0 8px rgba(114,9,183,0.14);}
+textarea{resize:vertical;min-height:80px;}
+.btn{background:linear-gradient(90deg,var(--primary),#000);color:white;border:none;border-radius:10px;padding:12px;font-weight:600;cursor:pointer;transition:transform 0.15s;}
+.btn:hover{transform:translateY(-2px);}
+.card{background:linear-gradient(180deg,#fff,#fafaff);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid rgba(58,12,163,0.08);box-shadow:0 8px 20px rgba(58,12,163,0.04);}
+.lost-item{border:1px solid #eee;border-radius:10px;padding:10px;margin-bottom:10px;}
+.preview{max-width:100%;height:140px;object-fit:cover;border-radius:8px;border:1px solid #ddd;margin-top:6px;}
+#notifBadge{background:#ff0033;color:white;padding:2px 6px;border-radius:8px;font-size:0.8rem;font-weight:700;margin-left:6px;display:none;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 8px rgba(255,0,0,0.6);}50%{box-shadow:0 0 18px rgba(255,0,0,0.9);}100%{box-shadow:0 0 8px rgba(255,0,0,0.6);}}
+.toast{position:fixed;bottom:20px;right:20px;background:linear-gradient(90deg,var(--accent),#000);color:white;padding:12px 18px;border-radius:10px;font-weight:600;opacity:0;transform:translateY(10px);transition:all 0.3s ease;z-index:9999;}
+.toast.show{opacity:1;transform:translateY(0);}
+@media(max-width:900px){.sidebar{display:none;}.main{border-radius:0;padding:18px;}}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <h2>🏢 Department Staff</h2>
+  <button class="active" onclick="showSection('maintenance',this)">Maintenance</button>
+  <button onclick="showSection('lostFound',this)">Lost & Found</button>
+  <button onclick="showSection('courier',this)">Courier</button>
+  <button onclick="showSection('itSupport',this)">IT Support</button>
+  <button onclick="showSection('emergency',this)">Emergency Alerts</button>
+  <button onclick="showSection('status',this)">Request Status</button>
+  <button onclick="showSection('notifications',this)">Notifications <span id='notifBadge'>0</span></button>
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div><h1 id="sectionTitle">Maintenance</h1><div class="small">Manage all department maintenance & reports</div></div>
+    <div class="user-info" id="userInfo">Loading...</div>
+  </div>
+  <div id="sectionContent"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const user=JSON.parse(localStorage.getItem('cch_current_user')||'null');
+const sectionTitle=document.getElementById('sectionTitle');
+const sectionContent=document.getElementById('sectionContent');
+const toast=document.getElementById('toast');
+const notifBadge=document.getElementById('notifBadge');
+const userInfo=document.getElementById('userInfo');
+if(!user||user.role!=='Department Staff'){alert("Unauthorized Access! Please login as Department Staff.");window.location.href='login.html';}
+else userInfo.textContent=`${user.name} • ${user.role}`;
+
+function showToast(m){toast.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500);}
+const getRequests=()=>JSON.parse(localStorage.getItem('cch_requests')||'[]');
+const saveRequests=a=>localStorage.setItem('cch_requests',JSON.stringify(a));
+const getReplies=()=>JSON.parse(localStorage.getItem('cch_replies')||'[]');
+const saveReplies=a=>localStorage.setItem('cch_replies',JSON.stringify(a));
+const genId=()=>Date.now()+Math.floor(Math.random()*999);
+const escapeHtml=u=>String(u||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+const formatDatetime=i=>new Date(i).toLocaleString();
+const fileToBase64=f=>new Promise(res=>{if(!f)return res(null);const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(f);});
+
+function showSection(id,btn){
+  document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  sectionTitle.textContent={
+    maintenance:'Maintenance',lostFound:'Lost & Found',courier:'Courier',
+    itSupport:'IT Support',emergency:'Emergency Alerts',notifications:'Notifications',
+    status:'Request Status'
+  }[id];
+  if(id==='maintenance')renderMaintenance();
+  else if(id==='lostFound')renderLostFound();
+  else if(id==='courier')renderCourier();
+  else if(id==='itSupport')renderIT();
+  else if(id==='emergency')renderEmergency();
+  else if(id==='notifications'){markRead();renderNotifications();}
+  else if(id==='status')renderStatus();
+}
+
+/* ---------------- Maintenance ---------------- */
+function renderMaintenance(){
+  sectionContent.innerHTML=`<div class='card'><h3>Report Maintenance Issue</h3>
+  <form id='maintForm'>
+  <select id='maintType'>
+    <option value='Electrical'>Electrical</option>
+    <option value='Plumbing'>Plumbing</option>
+    <option value='HVAC / Cooling'>HVAC / Cooling</option>
+    <option value='Furniture / Fixtures'>Furniture / Fixtures</option>
+    <option value='Cleaning / Hygiene'>Cleaning / Hygiene</option>
+    <option value='IT Equipment'>IT Equipment</option>
+    <option value='Other'>Other</option>
+  </select>
+  <input id='maintLocation' placeholder='Location (Block/Room No.)'>
+  <input id='maintTitle' placeholder='Issue Title'>
+  <textarea id='maintDesc' placeholder='Describe the issue'></textarea>
+  <input type='file' id='maintImg' accept='image/*'>
+  <select id='maintPriority'>
+    <option value='Low'>Low</option>
+    <option value='Medium'>Medium</option>
+    <option value='High'>High</option>
+    <option value='Critical'>Critical</option>
+  </select>
+  <button class='btn' type='button' onclick='submitMaintenance()'>Submit Maintenance</button></form></div>`;
+}
+async function submitMaintenance(){
+  const t=maintTitle.value.trim(),d=maintDesc.value.trim(),loc=maintLocation.value.trim();
+  if(!t||!d||!loc)return showToast('All fields required');
+  const img=maintImg.files[0]?await fileToBase64(maintImg.files[0]):null;
+  const all=getRequests();
+  all.push({id:genId(),category:'Maintenance',submitted_by:user.name,role:user.role,
+  type:maintType.value,location:loc,title:t,desc:d,priority:maintPriority.value,
+  image:img,status:'Pending',createdAt:new Date().toISOString()});
+  saveRequests(all);showToast('Maintenance issue recorded');maintForm.reset();
+}
+
+/* ---------------- Lost & Found ---------------- */
+function renderLostFound(){
+  sectionContent.innerHTML=`<div class='card'><h3>Lost & Found Item</h3><form id='lfForm'>
+  <input id='lfItem' placeholder='Item Name'>
+  <input id='lfLoc' placeholder='Found At'>
+  <textarea id='lfDesc' placeholder='Description'></textarea>
+  <input type='file' id='lfImg' accept='image/*'>
+  <select id='lfAction'><option>Found</option><option>Returned to Lost Desk</option></select>
+  <button class='btn' type='button' onclick='submitLF()'>Submit</button></form></div>`;
+}
+async function submitLF(){
+  if(!lfItem.value.trim()||!lfLoc.value.trim())return showToast('All fields required');
+  const img=lfImg.files[0]?await fileToBase64(lfImg.files[0]):null;
+  const all=getRequests();
+  all.push({id:genId(),category:'Lost & Found',submitted_by:user.name,role:user.role,item:lfItem.value,place:lfLoc.value,desc:lfDesc.value,image:img,status:lfAction.value,createdAt:new Date().toISOString()});
+  saveRequests(all);showToast('Lost & Found report saved');lfForm.reset();
+}
+
+/* ---------------- Courier ---------------- */
+function renderCourier(){
+  sectionContent.innerHTML=`<div class='card'><h3>Courier Management</h3><form id='courForm'>
+  <select id='courType'><option>Incoming</option><option>Outgoing</option></select>
+  <input id='courFrom' placeholder='From / To'>
+  <input id='courRef' placeholder='Reference Number'>
+  <textarea id='courNotes' placeholder='Details'></textarea>
+  <button class='btn' type='button' onclick='submitCourier()'>Save Record</button></form></div>`;
+}
+function submitCourier(){
+  const all=getRequests();
+  all.push({id:genId(),category:'Courier',submitted_by:user.name,role:user.role,type:courType.value,from:courFrom.value,ref:courRef.value,desc:courNotes.value,status:'Recorded',createdAt:new Date().toISOString()});
+  saveRequests(all);showToast('Courier record added');courForm.reset();
+}
+
+/* ---------------- IT Support ---------------- */
+function renderIT(){
+  sectionContent.innerHTML=`<div class='card'><h3>IT Support Request</h3><form id='itForm'>
+  <select id='itIssueType'>
+    <option value='Hardware Issue'>Hardware Issue</option>
+    <option value='Software / OS'>Software / OS</option>
+    <option value='Network / Internet'>Network / Internet</option>
+    <option value='Email / Account Access'>Email / Account Access</option>
+    <option value='Printer / Peripheral'>Printer / Peripheral</option>
+    <option value='Other'>Other</option>
+  </select>
+  <input id='itDevice' placeholder='Device Type (PC, Laptop, Printer, etc.)'>
+  <input id='itAsset' placeholder='Asset / Inventory ID (optional)'>
+  <select id='itPriority'>
+    <option value='Low'>Low</option>
+    <option value='Medium'>Medium</option>
+    <option value='High'>High</option>
+    <option value='Urgent'>Urgent</option>
+  </select>
+  <textarea id='itDesc' placeholder='Detailed Issue Description'></textarea>
+  <input type='file' id='itImg' accept='image/*'>
+  <button class='btn' type='button' onclick='submitIT()'>Submit IT Request</button></form></div>`;
+}
+async function submitIT(){
+  const issue=itIssueType.value,dev=itDevice.value.trim(),desc=itDesc.value.trim();
+  if(!dev||!desc)return showToast('All fields required');
+  const img=itImg.files[0]?await fileToBase64(itImg.files[0]):null;
+  const all=getRequests();
+  all.push({id:genId(),category:'IT Support',submitted_by:user.name,role:user.role,
+  issueType:issue,device:dev,asset:itAsset.value,priority:itPriority.value,
+  desc:desc,image:img,status:'Pending',createdAt:new Date().toISOString()});
+  saveRequests(all);showToast('IT request submitted');itForm.reset();
+}
+
+/* ---------------- Emergency ---------------- */
+function renderEmergency(){
+  const all=getRequests().filter(r=>r.category==='Emergency').reverse();
+  if(!all.length)return sectionContent.innerHTML='<div class="card"><p>No emergency alerts.</p></div>';
+  sectionContent.innerHTML=all.map(r=>`<div class='lost-item'><b>${escapeHtml(r.type)}</b> at ${escapeHtml(r.location||'Unknown')}<br>${escapeHtml(r.desc||'')}<div class='small'>${formatDatetime(r.createdAt)}</div></div>`).join('');
+}
+
+/* ---------------- Status ---------------- */
+function renderStatus(){
+  const all=getRequests().filter(r=>r.submitted_by===user.name).reverse();
+  if(!all.length)return sectionContent.innerHTML='<div class="card"><p>No records yet.</p></div>';
+  sectionContent.innerHTML=all.map(r=>`<div class='lost-item card'><b>${escapeHtml(r.category)}</b> - ${escapeHtml(r.title||r.item||r.device||'No Title')}<br>${escapeHtml(r.desc||'')}<div>Status: <strong style='color:${r.status==='Pending'?'#f59e0b':'#10b981'}'>${r.status}</strong></div><div class='small'>${formatDatetime(r.createdAt)}</div></div>`).join('');
+}
+
+/* ---------------- Notifications ---------------- */
+function renderNotifications(){
+  const replies=getReplies(),reqs=getRequests();
+  const mine=reqs.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+  const rel=replies.filter(r=>mine.includes(r.reply_to_id)).reverse();
+  if(!rel.length)return sectionContent.innerHTML='<div class="card"><p>No notifications</p></div>';
+  sectionContent.innerHTML=rel.map(r=>`<div class='card'><b>${escapeHtml(r.from)}</b> replied: ${escapeHtml(r.message)}<div class='small'>${formatDatetime(r.date)}</div></div>`).join('');
+}
+
+/* ---------------- Unread Badge ---------------- */
+function updateNotifBadge(){
+  const replies=getReplies(),reqs=getRequests();
+  const mine=reqs.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+  const unread=replies.filter(r=>mine.includes(r.reply_to_id)&&!(r.readBy||[]).includes(user.name));
+  notifBadge.style.display=unread.length?'inline-block':'none';
+  notifBadge.textContent=unread.length;
+}
+function markRead(){
+  const replies=getReplies(),reqs=getRequests();
+  const mine=reqs.filter(r=>r.submitted_by===user.name).map(r=>r.id);
+  const upd=replies.map(r=>{if(mine.includes(r.reply_to_id)){const rb=r.readBy||[];if(!rb.includes(user.name))rb.push(user.name);return{...r,readBy:rb};}return r;});
+  saveReplies(upd);updateNotifBadge();
+}
+
+setInterval(updateNotifBadge,3000);
+updateNotifBadge();
+function logout(){localStorage.removeItem('cch_current_user');showToast('Logged out');setTimeout(()=>window.location.href='index.html',900);}
+showSection('maintenance',document.querySelector('.sidebar button'));
+</script>
+</body>
+</html>
