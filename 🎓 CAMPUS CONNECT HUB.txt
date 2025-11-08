@@ -1,0 +1,58 @@
+🎓 CAMPUS CONNECT HUB
+
+Campus Connect Hub is a modern digital university portal that unites students, teachers, staff, and visitors into one connected platform. It enables users to request, report, and resolve campus-related issues with simplicity and speed.
+
+─────────────────────────────
+🧩 PROJECT OVERVIEW
+─────────────────────────────
+Key Features:
+• Multi-role access system (Student, Teacher, Admin, Department Staff, Admin Assistant)
+• Admin Dashboard with full request management
+• Admin Assistant Dashboard with limited access
+• Events and Admissions modules
+• Fully responsive layout (Mobile, Tablet, Desktop)
+• LocalStorage-based data management (no backend required)
+
+─────────────────────────────
+🛠️ TECHNOLOGIES USED
+─────────────────────────────
+• HTML5
+• CSS3 (Responsive Media Queries)
+• JavaScript (Vanilla)
+• Google Fonts (Poppins)
+
+─────────────────────────────
+⚙️ SETUP INSTRUCTIONS
+─────────────────────────────
+1. Clone this repository:
+   git clone https://github.com/YOUR_USERNAME/CampusConnectHub.git
+
+2. Open the project folder and launch “index.html”
+   or use the “Live Server” extension in VS Code for best results.
+
+─────────────────────────────
+👥 ADMIN ACCOUNTS
+─────────────────────────────
+Admin → admin@campusconnect.com / admin123
+Admin Assistant → adminassistant@campusconnect.com / assistant1234
+
+─────────────────────────────
+📱 RESPONSIVENESS
+─────────────────────────────
+Optimized for all screen sizes:
+• Mobile: ≤600px
+• Tablet: 601–992px
+• Desktop: ≥993px
+
+─────────────────────────────
+🧑‍🎓 DEVELOPER INFO
+─────────────────────────────
+Developed by Mohammad Mujtaba
+Under the BS Information Technology (2nd Year) program
+Web Engineering Project
+
+─────────────────────────────
+⚖️ LICENSE
+─────────────────────────────
+This project is open-source under the Mujtaba License.
+Feel free to fork, use, and improve it — with proper credit.

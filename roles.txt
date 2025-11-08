@@ -1,0 +1,36 @@
+─────────────────────────────
+👤 USER ROLES & PERMISSIONS
+─────────────────────────────
+
+ STUDENT  
+   • Can submit requests and reports.  
+   • Can view the status of their submitted issues.  
+   • Can read announcements (Events & Admissions).  
+   • Cannot modify or delete any admin/staff data.  
+
+ TEACHER  
+   • Can view and manage student requests related to academic issues.  
+   • Can post updates or replies to certain requests.  
+   • Cannot access admin-level dashboards or delete data.  
+
+ ADMIN STAFF  
+   • Has partial administrative privileges.  
+   • Can view all requests submitted by users.  
+   • Can update request statuses (Pending, In Progress, Resolved, etc.).  
+   • Can view notifications.  
+   • Cannot delete requests.  
+   • Cannot access Events or Admissions modules.  
+
+ ADMIN  
+   • Full system access and privileges.  
+   • Can manage all requests, users, events, and admissions.  
+   • Can post campus-wide announcements.  
+   • Can delete or modify any request or data record.  
+DEPARTMENT STAFF  
+   • Can handle internal departmental issues only.  
+   • Can manage or respond to requests tagged under their department.  
+   • Limited dashboard controls.  
+ GENERAL PUBLIC  
+   • Read-only access.  
+   • Can view public announcements, upcoming events, and admissions.  
+   • Cannot submit requests or log in to administrative panels.  
